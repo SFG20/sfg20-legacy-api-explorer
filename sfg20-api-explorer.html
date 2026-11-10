@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SFG20 API Explorer</title>
+<style>
+:root {
+  --bg: #f3f6f8;
+  --panel: #ffffff;
+  --ink: #1d2b32;
+  --muted: #5a6b74;
+  --line: #d9e1e5;
+  --brand: #1d7f7c;
+  --brand-ink: #ffffff;
+  --brand-soft: #e3f2f1;
+  --warn-bg: #fff4e0;
+  --warn-ink: #7a4a00;
+  --warn-line: #f0c36d;
+  --bad-bg: #fdeaea;
+  --bad-ink: #8a1f1f;
+  --ok-bg: #e5f5ea;
+  --ok-ink: #1d6b3a;
+  --code-bg: #f0f4f6;
+  --focus: #0b5cad;
+  --get: #1d7f3a;
+  --post: #8a5a00;
+  --radius: 8px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+:root[data-theme="dark"] {
+  --bg: #12191d;
+  --panel: #1a2329;
+  --ink: #e6edf0;
+  --muted: #9bacb5;
+  --line: #2b3841;
+  --brand: #4cc2bd;
+  --brand-ink: #08201f;
+  --brand-soft: #1b3533;
+  --warn-bg: #3a2c10;
+  --warn-ink: #f2cf8c;
+  --warn-line: #6b5120;
+  --bad-bg: #3a1a1a;
+  --bad-ink: #f3b3b3;
+  --ok-bg: #16301f;
+  --ok-ink: #9fe0b5;
+  --code-bg: #0f161a;
+  --focus: #7db8ff;
+  --get: #5fd18a;
+  --post: #f2cf8c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); display: flex; flex-direction: column; }
+a { color: var(--brand); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+code, pre, .mono { font-family: var(--mono); font-size: 12.5px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; overflow: auto; margin: 8px 0; white-space: pre-wrap; word-break: break-word; }
+h2 { font-size: 18px; margin: 0 0 4px; line-height: 1.25; }
+h3 { font-size: 14px; margin: 14px 0 6px; }
+p { margin: 6px 0; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.table-wrap { overflow-x: auto; }
+
+/* Header */
+header.top { flex: none; background: var(--panel); border-bottom: 1px solid var(--line); padding: 7px 14px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.brand { font-weight: 700; font-size: 16px; color: var(--brand); }
+.brand span { color: var(--ink); font-weight: 500; }
+.spacer { flex: 1; }
+.env { display: flex; align-items: center; gap: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--ink); padding: 4px 12px; cursor: pointer; font: inherit; }
+.seg button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); font-weight: 600; }
+.seg button[data-env="live"][aria-pressed="true"] { background: #b42318; color: #fff; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); background: var(--panel); white-space: nowrap; }
+.pill.ok { background: var(--ok-bg); color: var(--ok-ink); border-color: transparent; }
+.pill.bad { background: var(--bad-bg); color: var(--bad-ink); border-color: transparent; }
+.pill.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit; }
+.btn:hover:not(:disabled) { border-color: var(--brand); }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.small { padding: 3px 9px; font-size: 12px; }
+.livebar { flex: none; background: #b42318; color: #fff; padding: 5px 14px; font-size: 13px; display: none; }
+.livebar.show { display: block; }
+
+/* Three columns: menu | request 40% | response 40% */
+.app { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(170px, 20%) 1fr 1fr; }
+.app.single { grid-template-columns: minmax(170px, 20%) 1fr; }
+.app.single #colRes { display: none; }
+nav.side { background: var(--panel); border-right: 1px solid var(--line); padding: 8px 8px 16px; overflow: auto; min-height: 0; }
+nav.side input[type=search] { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; margin-bottom: 4px; }
+nav.side .grp { margin: 10px 6px 3px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+nav.side a { display: flex; align-items: flex-start; gap: 6px; padding: 5px 6px; border-radius: 6px; color: var(--ink); text-decoration: none; font-size: 13px; line-height: 1.3; }
+nav.side a:hover { background: var(--brand-soft); }
+nav.side a[aria-current="page"] { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+.verb { flex: none; font: 700 9px var(--mono); color: var(--get); border: 1px solid var(--get); border-radius: 3px; padding: 1px 4px; margin-top: 2px; }
+.verb.post { color: var(--post); border-color: var(--post); }
+.tag-dep { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn-line); border-radius: 4px; padding: 0 5px; margin-left: 6px; vertical-align: middle; }
+.col { overflow: auto; min-height: 0; padding: 12px 14px 20px; }
+#colReq { border-right: 1px solid var(--line); }
+#colRes { display: flex; flex-direction: column; padding-bottom: 12px; }
+.page { max-width: 880px; }
+
+/* Heading block */
+.hd { margin-bottom: 8px; }
+.urlline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 0; }
+.urlline code { word-break: break-all; }
+.lede { color: var(--muted); margin: 10px 0; line-height: 1.6; }
+
+/* Accordions */
+details.acc { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); margin: 0 0 7px; }
+details.acc > summary { padding: 8px 12px; cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .12s; flex: none; }
+details.acc[open] > summary::before { transform: rotate(45deg); }
+details.acc > summary .sum { margin-left: auto; font-weight: 400; color: var(--muted); font-size: 12px; }
+details.acc[open] > summary { border-bottom: 1px solid var(--line); }
+.accbody { padding: 8px 12px 12px; }
+.accbody > :first-child { margin-top: 0; }
+
+/* Forms */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 12px; }
+label.f { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+label.f input { display: block; width: 100%; margin-top: 3px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: 13px var(--mono); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.note { font-size: 12px; color: var(--muted); }
+.msg { font-size: 12.5px; }
+.msg.bad { color: var(--bad-ink); }
+.msg.ok { color: var(--ok-ink); }
+.notice { border-radius: var(--radius); padding: 7px 10px; margin: 8px 0; border: 1px solid var(--line); background: var(--brand-soft); font-size: 13px; }
+.notice.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+
+/* Response column */
+.resbar { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.spin { flex: none; width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: spin .8s linear infinite; }
+.spin.idle { animation: none; border-top-color: var(--line); }
+.spin.ok { animation: none; border-color: var(--ok-ink); background: var(--ok-bg); }
+.spin.bad { animation: none; border-color: var(--bad-ink); background: var(--bad-bg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+.restext { font-weight: 600; }
+.reselapsed { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.resmeta { flex: none; margin: 6px 2px 0; font-size: 12px; color: var(--muted); word-break: break-all; min-height: 1.4em; }
+#resBody { flex: 1; min-height: 0; margin: 6px 0 0; overflow: auto; background: var(--panel); }
+.empty { color: var(--muted); }
+
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+a.btn { text-decoration: none; display: inline-block; }
+select.sel { padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; max-width: 240px; }
+.app.setup { grid-template-columns: 1fr; }
+.app.setup nav.side { display: none; }
+.app.setup #colReq { border-right: 0; }
+.wiz { max-width: 700px; margin: 0 auto; }
+.stepper { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0; margin: 12px 0; }
+.stepper li { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.stepper .n { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; background: var(--panel); }
+.stepper li.cur { color: var(--ink); font-weight: 600; }
+.stepper li.cur .n { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.stepper li.done .n { background: var(--ok-bg); color: var(--ok-ink); border-color: transparent; }
+.wiz .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px 14px; margin: 8px 0; }
+.choice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; margin: 6px 0; cursor: pointer; background: var(--bg); }
+.choice:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+.choice input { margin-top: 4px; }
+
+.sw td:nth-child(2) { min-width: 360px; }
+.sw td:nth-child(3) { min-width: 240px; }
+.sw td:nth-child(5) { min-width: 120px; }
+details.mini { margin: 4px 0 0; }
+details.mini > summary { cursor: pointer; font-size: 12px; color: var(--brand); font-weight: 600; }
+details.mini[open] { margin-bottom: 6px; }
+.accbody p { margin: 12px 0; line-height: 1.65; }
+.accbody ul, .accbody ol { margin: 12px 0; padding-left: 24px; }
+.accbody li { margin: 10px 0; line-height: 1.6; }
+td ul.tight { margin: 0; padding-left: 18px; }
+td ul.tight li { margin: 6px 0; line-height: 1.5; }
+.menu-btn { display: none; }
+@media (max-width: 980px) {
+  html, body { height: auto; }
+  body { display: block; }
+  .app, .app.single { display: block; }
+  .app.single #colRes { display: none; }
+  nav.side { display: none; border-right: 0; border-bottom: 1px solid var(--line); }
+  nav.side.open { display: block; }
+  #colReq { border-right: 0; }
+  #colRes { min-height: 60vh; }
+  .menu-btn { display: inline-block; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="btn small menu-btn" id="menuBtn" aria-expanded="false" aria-controls="side">Menu</button>
+  <div class="brand">SFG20 <span>API Explorer</span></div>
+  <div class="env" id="cfgGroup" role="group" aria-label="Configuration">
+    <label class="sr" for="cfgSelect">Configuration</label>
+    <select id="cfgSelect" class="sel"></select>
+    <span class="pill" id="envBadge"></span>
+    <code id="rootUrl"></code>
+    <a class="btn small" href="#configs">Manage</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="pill" id="tokenPill" role="status" aria-live="polite">No token</span>
+  <button class="btn small" id="themeBtn" type="button" aria-pressed="false">Dark mode</button>
+</header>
+<div class="livebar" id="liveBar" role="alert">The active configuration uses the Live environment. Requests only read data (GET). They run on the live service.</div>
+
+<div class="app" id="app">
+  <nav class="side" id="side" aria-label="Endpoints and reference">
+    <input type="search" id="navFilter" placeholder="Filter" aria-label="Filter endpoints">
+    <div id="navList"></div>
+  </nav>
+  <section class="col" id="colReq" aria-label="Request"></section>
+  <section class="col" id="colRes" aria-label="Response"></section>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * Configuration
+ * ------------------------------------------------------------------ */
+const ENVS = {
+  test: { label: "Test (OTE)", root: "https://az-sfg20-api-ote.azurewebsites.net" },
+  live: { label: "Live", root: "https://api.sfg20.co.uk" }
+};
+const REQUEST_TIMEOUT_MS = 120000;
+const TOKEN_TIMEOUT_MS = 30000;
+const MAX_RENDER_CHARS = 300000;
+
+/* ------------------------------------------------------------------ *
+ * Reference data (SFG20 API User Guide v3.4)
+ * ------------------------------------------------------------------ */
+const FIELDS = {
+  ScheduleHeader: [
+    ["ScheduleId", "Int64", "The unique ID of the schedule."],
+    ["Code", "String", "The code of the schedule, for example 23-41."],
+    ["Title", "String", "The name of the schedule."],
+    ["CreatedDate", "DateTime (ISO-8601)", "The date and time when the schedule was created."],
+    ["DateUpdated", "DateTime (ISO-8601)", "The date and time of the last change to the schedule."],
+    ["Version", "String", "The version number of the schedule."],
+    ["YearVersion", "Int32", "The year of the latest version."],
+    ["ScheduleGroupPaths", "Array<String>", "The folders in the SFG20 library that contain the schedule. Each item is one folder path."],
+    ["NrmCodes", "Array<String>", "The NRM codes of the schedule."]
+  ],
+  ApprovedScheduleHeader: [
+    ["Type", "String", "The kind of schedule: Core or Custom."],
+    ["ScheduleId", "Int64", "The unique ID of the schedule."],
+    ["Code", "String", "The code of the schedule, for example 23-41."],
+    ["Title", "String", "The name of the schedule."],
+    ["CreatedDate", "DateTime (ISO-8601)", "The date and time when the schedule was created."],
+    ["DateUpdated", "DateTime (ISO-8601)", "The date and time of the last change to the schedule."],
+    ["Version", "String", "The version number of the schedule."],
+    ["YearVersion", "Int32", "The year of the latest version."],
+    ["ScheduleGroupPaths", "Array<String>", "The folders in the SFG20 library that contain the schedule. Each item is one folder path."],
+    ["NrmCodes", "Array<String>", "The NRM codes of the schedule."]
+  ],
+  Schedule: [
+    ["ScheduleId", "Int64", "The unique ID of the schedule."],
+    ["Code", "String", "The code of the schedule, for example 23-41."],
+    ["Title", "String", "The name of the schedule."],
+    ["CreatedDate", "DateTime (ISO-8601)", "The date and time when the schedule was created."],
+    ["DateUpdated", "DateTime (ISO-8601)", "The date and time of the last change to the schedule."],
+    ["Version", "String", "The version number of the schedule."],
+    ["UnitOfMeasure", "String", "The unit of measure of the schedule. See Lookup tables."],
+    ["ScheduleGroupPaths", "Array<String>", "The folders in the SFG20 library that contain the schedule. Each item is one folder path."],
+    ["NrmCodes", "Array<String>", "The NRM codes of the schedule."],
+    ["ScheduleIntro", "ScheduleIntro", "The introduction text of the schedule."],
+    ["ScheduleTasks", "Array<ScheduleTask>", "The tasks of the schedule."],
+    ["ScheduleLegislations", "Array<ScheduleLegislation>", "The laws and regulations that apply to the schedule."],
+    ["ScheduleTypes", "Array<String>", "The types of the schedule."],
+    ["ServiceTimings", "Array<ServiceTiming>", "The expected time to do the tasks."],
+    ["Flags", "Array<ScheduleFlag>", "The flags of the schedule."]
+  ],
+  ScheduleIntro: [
+    ["Content", "String", "The introduction text, as HTML."],
+    ["Notes", "String", "Extra notes, as HTML."]
+  ],
+  ScheduleTask: [
+    ["Title", "String", "The title of the task."],
+    ["Action", "String", "The work instruction of the task, as HTML."],
+    ["Notes", "String", "Extra notes about the task, as HTML."],
+    ["IsHeader", "Boolean", "True if the task is a section heading. False if it is a work task."],
+    ["SkillSet", "String", "The skill that the task needs."],
+    ["FrequencyPeriod", "Char", "The unit of time between two tasks, for example M for months. See Lookup tables."],
+    ["FrequencyInterval", "Int16", "The number of periods between two tasks. See Domain rules."],
+    ["Index", "Int16", "The position of the task in the list. See Domain rules."],
+    ["Criticality", "Char", "How critical the task is. See Lookup tables."]
+  ],
+  ScheduleLegislation: [
+    ["URL", "String", "A link to more information about the law or regulation."],
+    ["Title", "String", "The full name of the law or regulation."]
+  ],
+  ServiceTiming: [
+    ["Criticality", "Array<String>", "The criticality levels that the timing applies to."],
+    ["FrequencyPeriod", "Char", "The unit of time between two tasks."],
+    ["FrequencyInterval", "Int16", "The number of periods between two tasks."],
+    ["Index", "Int16", "The position in the list."],
+    ["Minutes", "Decimal", "The expected time for the tasks, in minutes."]
+  ],
+  ScheduleFlag: [
+    ["Name", "String", "The name of the flag."],
+    ["Content", "String", "The definition of the flag, as HTML."]
+  ],
+  ServiceModel: [
+    ["ServiceModelId", "Int64", "The unique ID of the service model."],
+    ["ParentServiceModelId", "Int64", "The ID of the parent service model. The value is 0 or empty if there is no parent."],
+    ["Name", "String", "The name of the service model."],
+    ["ScheduleTypeId", "Int64", "The type of the schedules in the service model."]
+  ],
+  Facility: [
+    ["Id", "Guid", "The unique ID of the facility."],
+    ["Name", "String", "The name of the facility."],
+    ["Address1", "String", "The first line of the address."],
+    ["Address2", "String", "The second line of the address."],
+    ["Address3", "String", "The third line of the address."],
+    ["Region", "String", "The region of the facility."],
+    ["Postcode", "String", "The postcode of the facility."]
+  ],
+  Asset: [
+    ["Id", "Guid", "The unique ID of the asset."],
+    ["ExternalId", "String", "Your own reference for the asset. The value is empty if you did not set one."],
+    ["AssetDescription", "String", "The description of the asset."],
+    ["AssetType", "Object { Id, Name }", "The type of the asset."],
+    ["Schedules", "Array<{ Id, Code, Title }>", "The schedules that apply to the asset."],
+    ["Space", "Object", "The room or area that contains the asset. Fields: Id, Name, Floor, Department, RoomNumber, Description, AssetCount, DocumentCount, and the dates when it was created and updated."],
+    ["System", "Object", "The system that the asset belongs to. Fields: Id, Name, AssetCount, DocumentCount, and the dates when it was created and updated."],
+    ["LocalReference", "String", "The local reference of the asset."],
+    ["Manufacturer", "String", "The manufacturer of the asset."],
+    ["Model", "String", "The model of the asset."],
+    ["SerialNumber", "String", "The serial number of the asset."],
+    ["TagId / ParentTagId", "String", "The tag ID of the asset, and the tag ID of its parent."],
+    ["InstallationDate", "DateTime (ISO-8601)", "The date when the asset was installed."],
+    ["Value", "Decimal", "The value of the asset."],
+    ["Condition", "String", "The condition grade, for example A (Good)."],
+    ["LastServiceDate", "DateTime (ISO-8601)", "The date of the last service."],
+    ["Comments", "String", "Free text comments."],
+    ["TypeClassifications", "Array<Object>", "The classifications of the asset type."]
+  ]
+};
+
+const LOOKUPS = {
+  "Frequency period": [["H", "Hourly"], ["D", "Daily"], ["W", "Weekly"], ["M", "Monthly"], ["Y", "Yearly"], ["U", "Unknown"]],
+  "Unit of measure": [["0", "Not specified"], ["1", "System"], ["2", "Nr (number of items)"], ["3", "m² (square metre)"], ["4", "Metre"]],
+  "Task criticality": [["A", "Amber"], ["G", "Green"], ["P", "Pink"], ["R", "Red"], ["U", "Not specified"]]
+};
+
+const SAMPLE_HEADER = {
+  ScheduleId: 116, Code: "01-01", Title: "Heat Exchangers - Coils",
+  CreatedDate: "2012-11-09T15:44:34.507", DateUpdated: "2015-12-02T16:45:59.637",
+  Version: "2", YearVersion: 2015,
+  ScheduleGroupPaths: ["SFG20 > Actuators", "SFG20 > Air Conditioning"], NrmCodes: []
+};
+
+const COMMON_STATUS = [
+  ["200", "Success. If a list has no items, the response is an empty array: []."],
+  ["400", "The server could not process the request. For /token, the response body has the fields error and error_description."],
+  ["401", "The token is missing, not valid or has expired. Request a new token."],
+  ["403", "The token is valid, but it cannot use this endpoint."],
+  ["404", "The item does not exist in the library of your credentials."],
+  ["500", "Server error. Send the request again once. If the error continues, contact SFG20 support. Give the time and the URL."]
+];
+
+const TOKEN_DOC = {
+  id: "token", title: "Token", method: "POST", path: "/token", group: "Authentication",
+  purpose: [
+    "Use this endpoint to get a bearer token.",
+    "Send the Client (Bridge) credentials and the Customer credentials. Every other endpoint needs the token in the HTTP header Authorization."
+  ],
+  bodyFields: [
+    ["grant_type", "string", "Always password."],
+    ["client_id", "string", "The Client (Bridge) ID."],
+    ["client_secret", "string", "The Client (Bridge) secret."],
+    ["customer_id", "string", "The Customer ID."],
+    ["customer_secret", "string", "The Customer secret."]
+  ],
+  example: { access_token: "eyJ0eXAiOiJKV1Qi...", token_type: "bearer", expires_in: 3599, refresh_token: "5b541c1c573c49b7997d513edd8e8b81" },
+  errors: [
+    ["400 invalid_client_id", "This environment does not know the Client (Bridge) ID."],
+    ["400 invalid_customer", "The Customer ID or the Customer secret is wrong or has expired. Or the customer key does not belong to the Client (Bridge) key."],
+    ["No readable response", "The credentials are usually wrong, or they are from a different environment. A network block can also cause this. See Troubleshooting."]
+  ]
+};
+
+const ENDPOINTS = [
+  {
+    id: "schedules-v2", group: "Schedules (V2)", title: "List schedules", status: "current",
+    path: "/api2/schedules/v2",
+    purpose: ["Returns a list of ScheduleHeader objects.", "A ScheduleHeader object is a summary of one schedule. It has the ID, code, title, dates and folders of the schedule. It does not have the tasks.", "The list has every schedule that your credentials can access."],
+    params: [], fields: ["ScheduleHeader"], example: [SAMPLE_HEADER],
+    notes: ["Use this endpoint to get the schedule IDs. Then use Get a schedule to read each schedule.", "This request can take 15 seconds or longer for a larger library.", "Schedule IDs do not change. A request for a schedule ID always returns the latest published version."]
+  },
+  {
+    id: "schedule-v2", group: "Schedules (V2)", title: "Get a schedule", status: "current",
+    path: "/api2/schedule/{Id}/v2",
+    purpose: ["Returns one complete schedule.", "The response has the main details, the introduction, the tasks, the legislation, the service timings and the flags of the schedule.", "Send the schedule ID in the URL."],
+    params: [{ name: "Id", where: "path", type: "Long (64-bit integer)", desc: "The ScheduleId. Get it from List schedules.", example: "116", required: true }],
+    fields: ["Schedule", "ScheduleIntro", "ScheduleTask", "ScheduleLegislation", "ServiceTiming", "ScheduleFlag"],
+    example: {
+      ScheduleId: 116, Code: "01-01", Title: "Heat Exchangers - Coils", CreatedDate: "2012-11-09T15:44:34.507",
+      DateUpdated: "2015-12-02T16:45:59.637", Version: "2", UnitOfMeasure: "Nr",
+      ScheduleGroupPaths: ["SFG20 > Actuators"], NrmCodes: [],
+      ScheduleIntro: { Content: "<p>...</p>", Notes: "" },
+      ScheduleTasks: [{ Title: "...", Action: "<p>...</p>", Notes: "", IsHeader: false, SkillSet: "...", FrequencyPeriod: "M", FrequencyInterval: 12, Index: 1, Criticality: "G" }],
+      ScheduleLegislations: [], ScheduleTypes: [], ServiceTimings: [], Flags: []
+    },
+    notes: ["The text of the tasks is HTML. Remove unsafe HTML before you show the text in another application.", "Show the tasks in order of the Index field, from the lowest to the highest."]
+  },
+  {
+    id: "approved-v2", group: "Schedules (V2)", title: "List approved schedules", status: "current",
+    path: "/api2/approvedschedules/v2",
+    purpose: ["Returns a list of ApprovedScheduleHeader objects.", "An ApprovedScheduleHeader object is a summary of one approved schedule. It has the same fields as a ScheduleHeader object, and one extra field: Type. Type is Core or Custom."],
+    params: [], fields: ["ApprovedScheduleHeader"], example: [Object.assign({ Type: "Core" }, SAMPLE_HEADER)],
+    notes: ["This request can take 15 seconds or longer for a larger library."]
+  },
+  {
+    id: "scheduleids-v2", group: "Schedules (V2)", title: "List schedule IDs", status: "current",
+    path: "/api2/scheduleIds/v2",
+    purpose: ["Returns the ID of every schedule that your credentials can access.", "The response is a list of numbers, from the lowest to the highest."],
+    params: [], fields: [], example: [116, 117, 118],
+    notes: ["Use this endpoint when you need only the schedule IDs. It is much faster than List schedules, because it does not read the schedule content.", "Then use Get a schedule for each ID."]
+  },
+  {
+    id: "nrmschedules-v2", group: "Schedules (V2)", title: "Schedules by NRM code", status: "current",
+    path: "/api2/nrmschedules/{code}/v2",
+    purpose: ["Returns a list of ScheduleHeader objects for one NRM code.", "The endpoint finds the NRM folders with a name that contains your code. It returns the schedules in those folders."],
+    params: [{ name: "code", where: "path", type: "String", desc: "An NRM code. It has numbers that are separated by dots, for example 21.1.", example: "", required: true }],
+    fields: ["ScheduleHeader"], example: [SAMPLE_HEADER],
+    notes: ["The code can have only numbers and dots, for example 21 or 21.1.2. Any other value returns status 400.", "The code matches part of a folder name. A shorter code returns more schedules. For example, 5.4.3 returns more schedules than 5.4.3.1.6.", "The NrmCodes field of a schedule shows its codes. You can see this field in the responses of List schedules and Get a schedule."]
+  },
+  {
+    id: "servicemodels", group: "Service models", title: "List service models", status: "current",
+    path: "/api2/servicemodels",
+    purpose: ["Returns a list of the service models of your subscription.", "A service model is a group of schedules. A service model can have child service models."],
+    params: [], fields: ["ServiceModel"],
+    example: [{ ServiceModelId: 214014, ParentServiceModelId: 0, Name: "Service Model 01", ScheduleTypeId: 3 }],
+    notes: ["If the subscription has no service models, the response is an empty array: []. The status is 200. This is a correct result."]
+  },
+  {
+    id: "servicemodel-schedules", group: "Service models", title: "Schedules in a service model", status: "current",
+    path: "/api2/servicemodel/{serviceModelId}/schedules",
+    purpose: ["Returns the schedules in one service model.", "The response has the full schedule objects, in the V1 format."],
+    params: [{ name: "serviceModelId", where: "path", type: "Int64", desc: "A ServiceModelId. Get it from List service models.", example: "", required: true }],
+    fields: [], example: [{ ScheduleId: 116 }, { ScheduleId: 117 }],
+    notes: ["The API User Guide v3.4 (Appendix 3) describes the V1 schedule objects.", "The example is shortened."]
+  },
+  {
+    id: "servicemodel-schedules-v2", group: "Service models", title: "Schedule summaries in a service model", status: "current",
+    path: "/api2/servicemodel/{serviceModelId}/schedules/v2",
+    purpose: ["Returns a list of ScheduleHeader objects for one service model.", "Each object is a summary of one schedule. The endpoint does not return the tasks."],
+    params: [{ name: "serviceModelId", where: "path", type: "Int32", desc: "A ServiceModelId. Get it from List service models.", example: "", required: true }],
+    fields: ["ScheduleHeader"], example: [SAMPLE_HEADER],
+    notes: ["If the service model does not exist, or is not in your subscription, the response is an empty array: []. The status is 200, not 404.", "The endpoint Schedules in a service model returns the full schedules. Its response is much larger."]
+  },
+  {
+    id: "facilities", group: "Facilities and assets", title: "List facilities", status: "current",
+    path: "/api2/Facilities",
+    purpose: ["Returns a list of the facilities of your subscription.", "A facility is a site or a building. Each facility has a name and an address."],
+    params: [], fields: ["Facility"],
+    example: [{ Id: "07d53fda-ba8c-eb11-918c-28c21f636c4c", Address1: "01 Facility Street", Address2: "Facility District", Address3: null, Region: "London", Postcode: "SW1 1WS" }],
+    notes: ["If there are no facilities, the response is an empty array: []. The status is 200."]
+  },
+  {
+    id: "assets", group: "Facilities and assets", title: "List assets for a facility", status: "current",
+    path: "/api2/Assets/{FacilityId}",
+    purpose: ["Returns a list of the assets in one facility.", "Each asset has its type, its schedules, its space and its system."],
+    params: [{ name: "FacilityId", where: "path", type: "Guid", desc: "A facility ID. Get it from List facilities.", example: "", required: true }],
+    fields: ["Asset"],
+    example: [{
+      Id: "32d4f9d7-bd8c-eb11-918c-28c21f636c4c", ExternalId: null, AssetDescription: "Asset 01",
+      AssetType: { Id: "dac2ac5f-8d24-4010-9497-9775b79fa1bc", Name: "Heat Emitter" },
+      Schedules: [{ Id: 112, Code: "28-01", Title: "Heat Emitters - Fan Convector Type (LTHW or Steam)" }],
+      LocalReference: "Asset 01 ref", Manufacturer: "Asset 01 Manufacturer", Model: "Asset 01 Model",
+      SerialNumber: "01", InstallationDate: "2021-03-24T00:00:00", Value: 100.0, Condition: "A (Good)"
+    }],
+    notes: ["The example is shortened. The response also has the fields Space, System and TypeClassifications."]
+  },
+  {
+    id: "schedule-v1", group: "Deprecated (V1)", title: "Get a schedule (V1)", status: "deprecated",
+    path: "/api2/schedule/{Id}",
+    purpose: ["Returns one schedule in the V1 format.", "This endpoint is deprecated. Use Get a schedule (V2) instead."],
+    params: [{ name: "Id", where: "path", type: "Long (64-bit integer)", desc: "The ScheduleId.", example: "116", required: true }],
+    fields: [], example: { ScheduleId: 116, Code: "01", Title: "Schedule 01", Version: 2, "...": "see API User Guide v3.4, Appendix 3" },
+    notes: ["This endpoint stays for existing integrations. For new work, use the V2 endpoints."]
+  },
+  {
+    id: "schedules-v1", group: "Deprecated (V1)", title: "List schedules (V1)", status: "deprecated",
+    path: "/api2/schedules",
+    purpose: ["Returns a list of the schedules of your subscription, in the V1 format.", "This endpoint is deprecated. Use List schedules (V2) instead."],
+    params: [], fields: [], example: [{ ScheduleId: 116, "...": "see API User Guide v3.4, Appendix 3" }],
+    notes: ["This endpoint stays for existing integrations. For new work, use the V2 endpoints."]
+  }
+];
+
+
+/* Status behaviour per endpoint, taken from the API controllers. 401 and 403 come from the
+   [Authorize(Roles = "Api")] attribute on every api2 controller. */
+const RESPONSES = {
+  "schedules-v2": { ok: "A JSON array of ScheduleHeader objects." },
+  "schedule-v2": { ok: "One Schedule object.", extra: [["404", "No schedule with this ID exists in the library of your credentials."]] },
+  "approved-v2": { ok: "A JSON array of ApprovedScheduleHeader objects." },
+  "servicemodels": { ok: "A JSON array of ServiceModel objects. The array is empty ([]) if there are none." },
+  "servicemodel-schedules": { ok: "A JSON array of Schedule objects, in the V1 format." },
+  "servicemodel-schedules-v2": { ok: "A JSON array of ScheduleHeader objects. The array is empty ([]) if the service model is not found." },
+  "scheduleids-v2": { ok: "A JSON array of numbers (Int64)." },
+  "nrmschedules-v2": { ok: "A JSON array of ScheduleHeader objects.", extra: [["400", "The code is not valid. It must have only numbers and dots."], ["404", "No NRM folder matches the code, or the matching folders have no schedules."]] },
+  "facilities": { ok: "A JSON array of Facility objects. The array is empty ([]) if there are none." },
+  "assets": { ok: "A JSON array of Asset objects.", extra: [["400", "The FacilityId is not a valid GUID."]] },
+  "schedule-v1": { ok: "One Schedule object, in the V1 format.", extra: [["404", "No schedule with this ID exists in the library of your credentials."]] },
+  "schedules-v1": { ok: "A JSON array of Schedule objects, in the V1 format.", fail: "Server error. This endpoint returns a number in the response body. The number is an error code." }
+};
+ENDPOINTS.forEach(e => { e.responses = RESPONSES[e.id]; });
+function statusRows(ep) {
+  const r = ep.responses;
+  if (!r) return COMMON_STATUS;
+  return [["200", r.ok], ...(r.extra || []),
+    ["401", "The token is missing, not valid or has expired. Request a new token."],
+    ["403", "The token is valid, but it was not issued for API access."],
+    ["500", r.fail || "Server error. The response body is empty. Send the request again once. If the error continues, contact SFG20 support. Give the time and the URL."]];
+}
+
+const GLOSSARY = [
+  ["Approved Provider", "A company that SFG20 has approved to connect its software to the SFG20 API."],
+  ["Asset", "A piece of equipment in a facility."],
+  ["Bearer token", "A long text that proves that you are signed in. Send it in the HTTP header Authorization of every request. A token stops working after some time."],
+  ["Cache", "A stored copy of a response. This page keeps cached responses in local storage."],
+  ["Client (Bridge) credentials", "A Client (Bridge) ID and a secret. SFG20 gives them to an Approved Provider."],
+  ["curl", "A command-line program that sends HTTP requests. Each endpoint page shows a curl command for the request."],
+  ["Customer credentials", "A Customer ID and a secret. SFG20 gives them for one customer. They give access to the library of that customer."],
+  ["Deprecated", "A deprecated endpoint still works. Do not use it for new work."],
+  ["Endpoint", "A web address (URL) that returns one kind of data."],
+  ["Environment", "Test (OTE) is for development and testing. Live has the production data. Each environment has its own credentials."],
+  ["Facility", "A site or a building that a customer manages. A facility has an address."],
+  ["GET and POST", "Two kinds of HTTP request. GET reads data. POST sends data to the server."],
+  ["GUID", "A unique identifier. It looks like this: 07d53fda-ba8c-eb11-918c-28c21f636c4c."],
+  ["HTTP header", "Extra information that you send with a request, or that the server sends with a response. Authorization and Accept are examples."],
+  ["HTML", "The text format of web pages. Some fields in the API contain HTML text."],
+  ["Int16, Int32, Int64", "Types for whole numbers. The number in the name shows the size. Int64 is the largest."],
+  ["JSON", "A text format for data. The API returns JSON."],
+  ["Library", "The schedules that a customer can use."],
+  ["Local storage", "Storage inside your browser. This page uses it for configurations, tokens and cached responses."],
+  ["NRM code", "A classification code from the New Rules of Measurement (NRM). SFG20 uses these codes to group schedules."],
+  ["Object", "A group of named fields in JSON."],
+  ["Schedule", "A maintenance specification. A schedule has a list of tasks."],
+  ["ScheduleHeader", "A summary of one schedule. It has the ID, code, title, dates and folders of the schedule. It does not have the tasks."],
+  ["Service model", "A group of schedules that a customer creates."],
+  ["Status code", "A number in the response that shows the result. 200 means success. A number that starts with 4 means a problem with the request. 500 means a server error."],
+  ["Subscription", "The SFG20 licence of a customer. Your credentials give access to one subscription."],
+  ["URL", "A web address."]
+];
+
+const TROUBLE = [
+  ["Token request: no readable response", [
+    "The browser cannot read the answer when the API rejects the credentials.",
+    "Usually, one of the four values is wrong, or it belongs to a different environment.",
+    "Check the selected environment. Test credentials do not work on Live.",
+    "Check for spaces at the start or the end of a value.",
+    "Check that each secret is in the correct secret field."]],
+  ["Token request: invalid_customer", [
+    "The Customer ID or the Customer secret is wrong.",
+    "The customer key can also be expired, or it can belong to a different Client (Bridge) key."]],
+  ["Token request: invalid_client_id", [
+    "This environment does not know the Client (Bridge) ID.",
+    "Check the selected environment."]],
+  ["Status 401", [
+    "The request had no token, or the token has expired.",
+    "Request a new token. Then send the request again."]],
+  ["Status 403", [
+    "The token is valid, but it was not issued for API access.",
+    "Check that you use the Client (Bridge) credentials and the Customer credentials."]],
+  ["Status 200 and an empty list: []", [
+    "The request worked, but the subscription has no items of this kind.",
+    "For example, it has no service models or no facilities."]],
+  ["Status 500", [
+    "The server has an error.",
+    "Send the request again once.",
+    "If the error continues, contact SFG20 support. Give the time and the URL."]],
+  ["The response takes a long time", [
+    "Some requests can take 15 seconds or longer.",
+    "This page waits up to two minutes."]],
+  ["Different results in Live and Test", [
+    "Live and Test are different environments.",
+    "They have different credentials and different data."]]
+];
+
+/* ------------------------------------------------------------------ *
+ * State and storage
+ *
+ * A configuration holds: name, environment, the four credentials and the
+ * last token. All configurations live in this browser's local storage.
+ * ------------------------------------------------------------------ */
+const LOCALE = "en-GB";
+const fmtDate = ms => new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZoneName: "short" }).format(new Date(ms));
+const fmtTime = ms => new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZoneName: "short" }).format(new Date(ms));
+const fmtNum = n => Number(n).toLocaleString(LOCALE);
+const STORE_KEY = "sfg20.explorer.v1";
+const state = {
+  store: { activeId: null, configs: [] },
+  storageOk: true,
+  abort: null,
+  swagger: {},   // root URL -> parsed Swagger document (memory only)
+  last: {}   // view id -> last completed response for the active configuration
+};
+
+function validConfig(c) {
+  return c && typeof c.id === "string" && typeof c.name === "string" && (c.env === "test" || c.env === "live");
+}
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && Array.isArray(s.configs)) {
+        const configs = s.configs.filter(validConfig).map(c => Object.assign({ clientId: "", clientSecret: "", customerId: "", customerSecret: "", token: null }, c));
+        const activeId = configs.some(c => c.id === s.activeId) ? s.activeId : (configs[0] ? configs[0].id : null);
+        return { activeId, configs };
+      }
+    }
+  } catch (e) { state.storageOk = false; }
+  return { activeId: null, configs: [] };
+}
+function saveStore() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state.store)); state.storageOk = true; }
+  catch (e) { state.storageOk = false; }
+}
+function safeStore(storage, op, key, val) {
+  try {
+    if (op === "get") return storage.getItem(key);
+    if (op === "set") storage.setItem(key, val);
+    if (op === "del") storage.removeItem(key);
+  } catch (e) { /* storage unavailable */ }
+  return null;
+}
+function newId() {
+  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+const configs = () => state.store.configs;
+const findConfig = id => configs().find(c => c.id === id) || null;
+const active = () => findConfig(state.store.activeId);
+const rootOf = cfg => ENVS[cfg.env].root;
+const rootUrl = () => { const a = active(); return a ? rootOf(a) : ""; };
+
+/* ------------------------------------------------------------------ *
+ * Response cache (local storage). One entry per configuration + URL:
+ * first line is a JSON header, the rest is the response body text.
+ * ------------------------------------------------------------------ */
+const CACHE_PREFIX = "sfg20.cache:";
+const CACHEOPT_KEY = "sfg20.cacheopt.v1";
+const cacheKey = (cfgId, url) => CACHE_PREFIX + cfgId + "|" + url;
+function cachePut(cfgId, url, r) {
+  try {
+    localStorage.setItem(cacheKey(cfgId, url), JSON.stringify({ savedAt: Date.now(), status: r.status, statusText: r.statusText }) + "\n" + r.text);
+    return { ok: true };
+  } catch (e) { return { ok: false }; }
+}
+function cacheParse(raw) {
+  const nl = raw.indexOf("\n");
+  if (nl < 0) return null;
+  try { const head = JSON.parse(raw.slice(0, nl)); return { savedAt: head.savedAt, status: head.status, statusText: head.statusText, text: raw.slice(nl + 1) }; }
+  catch (e) { return null; }
+}
+function cacheGet(cfgId, url) {
+  try { const raw = localStorage.getItem(cacheKey(cfgId, url)); return raw ? cacheParse(raw) : null; } catch (e) { return null; }
+}
+function cacheMeta(cfgId, url) {
+  try {
+    const raw = localStorage.getItem(cacheKey(cfgId, url));
+    if (!raw) return null;
+    const nl = raw.indexOf("\n");
+    return { savedAt: JSON.parse(raw.slice(0, nl)).savedAt, size: raw.length - nl - 1 };
+  } catch (e) { return null; }
+}
+function cacheDelete(cfgId, url) { safeStore(localStorage, "del", cacheKey(cfgId, url)); }
+function cacheEntries() {
+  const out = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(CACHE_PREFIX)) continue;
+      const rest = k.slice(CACHE_PREFIX.length), bar = rest.indexOf("|");
+      const raw = localStorage.getItem(k) || "", nl = raw.indexOf("\n");
+      let savedAt = 0; try { savedAt = JSON.parse(raw.slice(0, nl)).savedAt; } catch (e) { /* unreadable header */ }
+      out.push({ key: k, cfgId: rest.slice(0, bar), url: rest.slice(bar + 1), size: Math.max(0, raw.length - nl - 1), savedAt });
+    }
+  } catch (e) { /* storage unavailable */ }
+  return out.sort((a, b) => b.savedAt - a.savedAt);
+}
+function cacheClear(filterFn) {
+  for (const e of cacheEntries()) if (!filterFn || filterFn(e)) safeStore(localStorage, "del", e.key);
+}
+function cacheOptGet(epId) {
+  try { return !!(JSON.parse(localStorage.getItem(CACHEOPT_KEY) || "{}")[epId]); } catch (e) { return false; }
+}
+function cacheOptSet(epId, on) {
+  try { const o = JSON.parse(localStorage.getItem(CACHEOPT_KEY) || "{}"); if (on) o[epId] = true; else delete o[epId]; localStorage.setItem(CACHEOPT_KEY, JSON.stringify(o)); } catch (e) { /* ignore */ }
+}
+
+/* ------------------------------------------------------------------ *
+ * DOM helpers (all dynamic text goes through textContent)
+ * ------------------------------------------------------------------ */
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v === false || v == null) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else if (v === true) el.setAttribute(k, "");
+      else el.setAttribute(k, v);
+    }
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+function setKids(el, ...kids) {
+  el.replaceChildren(...kids.flat().filter(k => k != null && k !== false));
+}
+function table(headers, rows) {
+  return h("div", { class: "table-wrap" }, h("table", null,
+    h("thead", null, h("tr", null, headers.map(t => h("th", { text: t })))),
+    h("tbody", null, rows.map(r => h("tr", null, r.map(c => h("td", null, c && c.nodeType ? c : Array.isArray(c) ? h("ul", { class: "tight" }, c.map(x => h("li", { text: x }))) : String(c))))))
+  ));
+}
+function acc(title, summary, body, open) {
+  const sum = h("span", { class: "sum", text: summary || "" });
+  const d = h("details", { class: "acc" }, h("summary", null, title, sum), h("div", { class: "accbody" }, body));
+  if (open) d.open = true;
+  d.setSummary = t => { sum.textContent = t; };
+  return d;
+}
+function downloadText(text, name) {
+  const blob = new Blob([text], { type: "application/json" });
+  const a = h("a", { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function mask(s, keep) {
+  s = s || "";
+  if (!s) return "(not set)";
+  return keep && s.length > keep ? s.slice(0, keep) + "..." : "••••••••";
+}
+function envPill(cfg) {
+  return h("span", { class: "pill " + (cfg.env === "live" ? "bad" : ""), text: ENVS[cfg.env].label });
+}
+
+/* ------------------------------------------------------------------ *
+ * Token handling (per configuration)
+ * ------------------------------------------------------------------ */
+function decodeJwt(jwt) {
+  try {
+    const part = jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(atob(part).split("").map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join(""));
+    return JSON.parse(json);
+  } catch (e) { return null; }
+}
+const tokenOk = cfg => !!(cfg && cfg.token && cfg.token.expiresAt > Date.now());
+const tokenValid = () => tokenOk(active());
+
+function tokenStatusText(cfg) {
+  if (!cfg || !cfg.token) return "No token";
+  if (!tokenOk(cfg)) return "Expired";
+  return "Valid until " + fmtTime(cfg.token.expiresAt);
+}
+
+function renderTokenPill() {
+  const p = document.getElementById("tokenPill");
+  const a = active();
+  p.className = "pill";
+  if (!a) { p.textContent = "No configuration"; return; }
+  if (!a.token) { p.textContent = "No token"; return; }
+  const left = Math.floor((a.token.expiresAt - Date.now()) / 1000);
+  if (left <= 0) { p.textContent = "Token expired"; p.classList.add("bad"); return; }
+  p.textContent = "Token valid " + Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
+  p.classList.add(left < 120 ? "warn" : "ok");
+}
+setInterval(renderTokenPill, 1000);
+
+/* One token request for a configuration. Does not modify state. */
+async function tokenCall(cfg, onPhase, signal) {
+  const v = [cfg.clientId, cfg.clientSecret, cfg.customerId, cfg.customerSecret].map(x => (x || "").trim());
+  if (v.some(x => !x)) return { ok: false, missing: true };
+  const body = new URLSearchParams({ grant_type: "password", client_id: v[0], client_secret: v[1], customer_id: v[2], customer_secret: v[3] });
+  const t0 = performance.now();
+  try {
+    onPhase && onPhase("request");
+    const res = await fetch(rootOf(cfg) + "/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body, signal });
+    onPhase && onPhase("receive", res);
+    const text = await res.text();
+    let data; try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
+    const ms = performance.now() - t0;
+    if (res.ok && data && data.access_token) {
+      const claims = decodeJwt(data.access_token);
+      const life = Number(data.expires_in) > 0 ? Number(data.expires_in) * 1000 : 0;
+      const expiresAt = claims && claims.exp ? claims.exp * 1000 : Date.now() + life;
+      return { ok: true, status: res.status, statusText: res.statusText, text, data, ms, token: { access: data.access_token, type: data.token_type || "bearer", expiresAt, obtainedAt: Date.now() } };
+    }
+    return { ok: false, status: res.status, statusText: res.statusText, text, data, ms };
+  } catch (e) {
+    return { ok: false, network: true, aborted: e.name === "AbortError", ms: performance.now() - t0 };
+  }
+}
+function tokenMessage(r, cfg) {
+  if (r.missing) return "Enter all four credentials.";
+  if (r.ok) return "Token received for " + cfg.name + ".";
+  if (r.aborted) return "There was no response after 30 seconds. Check your network connection and the environment of this configuration.";
+  if (r.network) return "The browser could not read a response from " + rootOf(cfg) + ". A credential is probably wrong for this environment. A network block can also cause this problem. See Troubleshooting.";
+  if (r.data && r.data.error) return "Credentials rejected: " + r.data.error + (r.data.error_description ? " (" + r.data.error_description + ")" : "") + ".";
+  return "The API returned status " + r.status + " and no token.";
+}
+function applyToken(cfg, r) {
+  if (r.ok) { cfg.token = r.token; saveStore(); }
+  refreshChrome();
+}
+
+/* ------------------------------------------------------------------ *
+ * Response column
+ * ------------------------------------------------------------------ */
+function buildResponseColumn(viewId) {
+  const spin = h("span", { class: "spin idle", "aria-hidden": "true" });
+  const text = h("span", { class: "restext", role: "status", "aria-live": "polite", text: "No request sent" });
+  const elapsed = h("span", { class: "reselapsed" });
+  const copyBtn = h("button", { class: "btn small", type: "button", text: "Copy", disabled: true });
+  const dlBtn = h("button", { class: "btn small", type: "button", text: "Download", disabled: true });
+  const meta = h("div", { class: "resmeta" });
+  const body = h("pre", { id: "resBody" });
+  body.append(h("span", { class: "empty", text: "The response appears here." }));
+  let timer = null, t0 = 0, current = "";
+
+  const tick = () => { elapsed.textContent = ((performance.now() - t0) / 1000).toFixed(1) + " s"; };
+  function startTimer() { stopTimer(); t0 = performance.now(); tick(); timer = setInterval(tick, 100); }
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+  const api = {
+    node: h("div", { style: "display:flex;flex-direction:column;height:100%;min-height:0" },
+      h("div", { class: "resbar" }, spin, text, elapsed, h("span", { style: "flex:1" }), copyBtn, dlBtn),
+      meta, body),
+    requesting(url) {
+      startTimer(); current = "";
+      spin.className = "spin"; text.textContent = "Requesting endpoint"; meta.textContent = url;
+      body.replaceChildren(h("span", { class: "empty", text: "Waiting for the API to respond." }));
+      copyBtn.disabled = dlBtn.disabled = true;
+    },
+    receiving(status) {
+      spin.className = "spin"; text.textContent = "Receiving data" + (status ? " (HTTP " + status + ")" : "");
+      body.replaceChildren(h("span", { class: "empty", text: "The API started to send the response. The page is reading the data." }));
+    },
+    done(r, url, opts) {
+      stopTimer();
+      opts = opts || {};
+      const good = r.status >= 200 && r.status < 300;
+      spin.className = "spin " + (good ? "ok" : "bad");
+      const count = Array.isArray(r.parsed) ? ", " + r.parsed.length + " item" + (r.parsed.length === 1 ? "" : "s") : "";
+      text.textContent = "HTTP " + r.status + (r.statusText ? " " + r.statusText : "") + (opts.cachedAt ? " (cached copy)" : "");
+      elapsed.textContent = opts.cachedAt
+        ? "Saved " + fmtDate(opts.cachedAt) + ", " + r.text.length.toLocaleString(LOCALE) + " characters" + count
+        : (r.ms / 1000).toFixed(2) + " s, " + r.text.length.toLocaleString(LOCALE) + " characters" + count;
+      meta.textContent = url || meta.textContent;
+      let shown = r.parsed !== undefined ? JSON.stringify(r.parsed, null, 2) : r.text;
+      current = r.text;
+      const parts = [];
+      if (shown.length > MAX_RENDER_CHARS) {
+        shown = shown.slice(0, MAX_RENDER_CHARS);
+        parts.push(h("div", { class: "notice warn", text: "The response has more than " + MAX_RENDER_CHARS.toLocaleString(LOCALE) + " characters. The page shows only the first " + MAX_RENDER_CHARS.toLocaleString(LOCALE) + " characters. Use Download to get the complete response." }));
+      }
+      if (opts.cachedAt) parts.push(h("div", { class: "notice", text: "This is a stored copy. The page did not call the API. To get a new response, select Fetch from server." }));
+      if (r.status === 401) parts.push(h("div", { class: "notice", text: "Status 401: the token is missing or has expired. Request a new token." }));
+      body.replaceChildren(...parts, document.createTextNode(shown || "(empty body)"));
+      copyBtn.disabled = dlBtn.disabled = !r.text;
+    },
+    fail(msg) {
+      stopTimer();
+      spin.className = "spin bad"; text.textContent = "Request failed";
+      body.replaceChildren(document.createTextNode(msg));
+      copyBtn.disabled = dlBtn.disabled = true;
+    },
+    cancelled() {
+      stopTimer(); spin.className = "spin idle"; text.textContent = "Cancelled";
+      body.replaceChildren(h("span", { class: "empty", text: "The request was cancelled." }));
+    }
+  };
+  copyBtn.addEventListener("click", () => navigator.clipboard && navigator.clipboard.writeText(current));
+  dlBtn.addEventListener("click", () => downloadText(current, viewId + ".json"));
+  api.restore = last => { if (last) api.done(last.r, last.url); };
+  return api;
+}
+
+/* ------------------------------------------------------------------ *
+ * Views
+ * ------------------------------------------------------------------ */
+const VIEWS = [
+  { id: "start", title: "Getting started", group: "Guide", page: true },
+  { id: "configs", title: "Configurations", group: "Guide", page: true },
+  { id: "cache", title: "Cached responses", group: "Guide", page: true },
+  { id: "token", title: "Token", group: "Authentication", method: "POST", ep: TOKEN_DOC },
+  ...ENDPOINTS.map(e => ({ id: e.id, title: e.title, group: e.group, method: "GET", ep: e })),
+  { id: "swagger", title: "API index (Swagger)", group: "Reference", page: true },
+  { id: "domain", title: "Domain rules", group: "Reference", page: true },
+  { id: "lookups", title: "Lookup tables", group: "Reference", page: true },
+  { id: "glossary", title: "Glossary", group: "Reference", page: true },
+  { id: "trouble", title: "Troubleshooting", group: "Reference", page: true }
+];
+
+function parseHash() {
+  const raw = location.hash.slice(1) || "start";
+  const [id, arg] = raw.split("/");
+  return { id, arg: arg || "" };
+}
+function renderNav(filter) {
+  const list = document.getElementById("navList");
+  list.replaceChildren();
+  const f = (filter || "").trim().toLowerCase();
+  let lastGroup = null;
+  for (const v of VIEWS) {
+    if (f && !(v.title + " " + (v.ep ? v.ep.path : "")).toLowerCase().includes(f)) continue;
+    if (v.group !== lastGroup) { list.append(h("div", { class: "grp", text: v.group })); lastGroup = v.group; }
+    list.append(h("a", { href: "#" + v.id, "data-id": v.id },
+      v.method ? h("span", { class: "verb" + (v.method === "POST" ? " post" : ""), text: v.method }) : null,
+      h("span", { text: v.title })));
+  }
+  markCurrent();
+}
+function markCurrent() {
+  const id = parseHash().id;
+  document.querySelectorAll("#navList a").forEach(a => {
+    if (a.dataset.id === id) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+}
+
+/* ---- Guide and reference pages ---- */
+function storageNotice() {
+  return state.storageOk ? null : h("div", { class: "notice warn", text: "This browser does not allow local storage. The page keeps configurations and tokens only until you close the page." });
+}
+function pageStart() {
+  return h("div", { class: "page" },
+    h("h2", { text: "Getting started" }),
+    h("p", { class: "lede", text: "Use this page to send requests to the SFG20 Approved Provider API from your browser." }),
+    h("p", { class: "lede", text: "The page sends each request directly to the environment of the selected configuration." }),
+    storageNotice(),
+    acc("Steps", "", h("ol", null,
+      h("li", null, "Create a configuration on the ", h("a", { href: "#configs", text: "Configurations" }), " page. A configuration has a name, an environment (Test or Live) and four credentials. A setup wizard helps you with the first configuration."),
+      h("li", { text: "Select the configuration in the top bar of the page. You can store more than one configuration, for example one for each environment." }),
+      h("li", null, "Open ", h("a", { href: "#token", text: "Token" }), " and select Send. Or select Request token in the Authentication section of any endpoint. The top bar of the page shows how long the token is valid."),
+      h("li", { text: "Select an endpoint. Enter the parameters, if the endpoint has any. Select Send." }),
+      h("li", { text: "Read the response in the Response column. It shows the status and the data." }),
+      h("li", { text: "Use the curl command on the endpoint page to send the same request from other software." })
+    ), true),
+    acc("Credentials", "", h("div", null,
+      h("p", { text: "You need two sets of credentials:" }),
+      h("ul", null,
+        h("li", { text: "Client (Bridge) credentials. SFG20 gives these to an Approved Provider." }),
+        h("li", { text: "Customer credentials. SFG20 gives these for each customer. They give access to the library of that customer." })),
+      h("p", { text: "Together, the two sets give a token. The token gives access to the library of one customer." }),
+      h("p", { text: "Test and Live have separate credentials. Test credentials do not work on Live. Live credentials do not work on Test." })
+    ), true),
+    acc("Notes", "", h("ul", null,
+      h("li", { text: "The browser stores your configurations, credentials and tokens in local storage. The storage is not encrypted. The data stays on this device." }),
+      h("li", { text: "Use a browser profile that only you control. Delete a configuration to remove its credentials from the browser." }),
+      h("li", { text: "Every request from this page only reads data (GET). The token request (POST) does not create or change data." }),
+      h("li", { text: "Some requests can take 15 seconds or longer. This page waits up to two minutes. If you need only the schedule IDs, use List schedule IDs. It is much faster." }),
+      h("li", { text: "The API always returns JSON. The API index shows XML as a format. However, the API does not return XML." }),
+      h("li", { text: "The API records every successful request for usage reports. The record has the endpoint, the number of records and the size of the response." }),
+      h("li", { text: "This page follows the SFG20 API User Guide, version 3.4." })
+    ), true)
+  );
+}
+function pageDomain() {
+  return h("div", { class: "page" },
+    h("h2", { text: "Domain rules" }),
+    h("p", { class: "lede", text: "These rules come from the SFG20 API User Guide, version 3.4." }),
+    acc("Rules", "", h("ul", null,
+      h("li", { text: "A schedule ID never changes." }),
+      h("li", { text: "A request for a schedule ID always returns the latest published version of the schedule." }),
+      h("li", { text: "Show the tasks of a schedule in order of the Index field, from the lowest to the highest." }),
+      h("li", { text: "Each task has a FrequencyInterval and a FrequencyPeriod. Together, they show how often the task repeats." }),
+      h("li", { text: "Example: 12M means every 12 months. 4D means every 4 days." }),
+      h("li", { text: "A service timing is the total time for the tasks of one interval and one criticality." })
+    ), true)
+  );
+}
+function pageLookups() {
+  return h("div", { class: "page" },
+    h("h2", { text: "Lookup tables" }),
+    h("p", { class: "lede", text: "These codes appear in schedule data." }),
+    h("p", { class: "lede", text: "The Technical section of the SFG20 website FAQs has the skill set definitions." }),
+    Object.entries(LOOKUPS).map(([name, rows]) => acc(name, rows.length + " values", table(["Key", "Value"], rows), true))
+  );
+}
+function pageGlossary() {
+  return h("div", { class: "page" },
+    h("h2", { text: "Glossary" }),
+    h("p", { class: "lede", text: "These are short explanations of the terms in this tool." }),
+    acc("Terms", GLOSSARY.length + " terms", table(["Term", "Meaning"], GLOSSARY), true));
+}
+function pageTrouble() {
+  return h("div", { class: "page" },
+    h("h2", { text: "Troubleshooting" }),
+    h("p", { class: "lede", text: "These are common results, and what usually causes them." }),
+    acc("Results", TROUBLE.length + " results", table(["What you see", "What it usually means"], TROUBLE), true)
+  );
+}
+
+/* ---- Configurations page ---- */
+function pageConfigs() {
+  const wrap = h("div", { class: "page" });
+  const msg = h("div", { class: "msg", role: "status", "aria-live": "polite" });
+
+  function draw() {
+    setKids(wrap,
+      h("h2", { text: "Configurations" }),
+      h("p", { class: "lede", text: "A configuration has a name, an environment and credentials." }),
+      h("p", { class: "lede", text: "The page uses the active configuration for all requests." }),
+      storageNotice(),
+      h("div", { class: "row", style: "margin:8px 0" },
+        h("button", { class: "btn primary", type: "button", text: "Add configuration", onclick: () => { location.hash = "#setup"; } }),
+        configs().length ? h("button", { class: "btn", type: "button", text: "Delete all stored data", onclick: clearAll }) : null,
+        msg),
+      configs().length ? table(["Name", "Environment", "Client ID", "Token", "Actions"], configs().map(rowFor)) : h("p", { class: "note", text: "No configurations stored." }),
+      h("div", { class: "notice", text: "The browser stores credentials and tokens in local storage. The storage is not encrypted. Use only a device and a browser profile that you control." })
+    );
+  }
+  function rowFor(c) {
+    const isActive = c.id === state.store.activeId;
+    const btn = (label, fn, cls) => h("button", { class: "btn small" + (cls ? " " + cls : ""), type: "button", text: label, onclick: fn });
+    return [
+      h("span", null, h("strong", { text: c.name }), isActive ? h("span", { class: "pill ok", style: "margin-left:6px", text: "Active" }) : null),
+      envPill(c),
+      h("code", { text: mask(c.clientId, 8) }),
+      tokenStatusText(c),
+      h("div", { class: "row", style: "margin:0" },
+        isActive ? null : btn("Use", () => { setActive(c.id); draw(); }),
+        btn("Request token", () => requestFor(c)),
+        btn("Edit", () => { location.hash = "#setup/" + c.id; }),
+        btn("Duplicate", () => duplicate(c)),
+        btn("Delete", () => remove(c)))
+    ];
+  }
+  async function requestFor(c) {
+    msg.className = "msg"; msg.textContent = "Requesting token for " + c.name + "...";
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), TOKEN_TIMEOUT_MS);
+    const r = await tokenCall(c, null, ctrl.signal);
+    clearTimeout(to); applyToken(c, r);
+    msg.className = "msg " + (r.ok ? "ok" : "bad"); msg.textContent = tokenMessage(r, c);
+    draw();
+  }
+  function duplicate(c) {
+    let name = c.name + " (copy)", n = 2;
+    while (configs().some(x => x.name.toLowerCase() === name.toLowerCase())) name = c.name + " (copy " + n++ + ")";
+    configs().push(Object.assign({}, c, { id: newId(), name, token: null }));
+    saveStore(); refreshChrome(); draw();
+  }
+  function remove(c) {
+    if (!window.confirm("Delete the configuration \"" + c.name + "\" and its stored credentials and token?")) return;
+    state.store.configs = configs().filter(x => x.id !== c.id);
+    if (state.store.activeId === c.id) { state.store.activeId = configs()[0] ? configs()[0].id : null; state.last = {}; }
+    cacheClear(e => e.cfgId === c.id);
+    saveStore(); refreshChrome();
+    if (!configs().length) { location.hash = "#setup"; return; }
+    draw();
+  }
+  function clearAll() {
+    if (!window.confirm("Delete all configurations, credentials and tokens that this page stores?")) return;
+    state.store = { activeId: null, configs: [] }; state.last = {};
+    safeStore(localStorage, "del", STORE_KEY);
+    cacheClear();
+    refreshChrome(); location.hash = "#setup";
+  }
+  draw();
+  return wrap;
+}
+
+/* ---- Setup wizard (first run, add, edit) ---- */
+function pageWizard(editId) {
+  const editing = editId ? findConfig(editId) : null;
+  const first = !configs().length;
+  const draft = editing
+    ? { name: editing.name, env: editing.env, clientId: editing.clientId, clientSecret: editing.clientSecret, customerId: editing.customerId, customerSecret: editing.customerSecret }
+    : { name: first ? "Test" : "", env: "test", clientId: "", clientSecret: "", customerId: "", customerSecret: "" };
+  const STEPS = ["Environment", "Client credentials", "Customer credentials", "Verify and save"];
+  let step = 1, verify = null, verifyToken = null, showSecrets = false;
+  const root = h("div", { class: "wiz" });
+
+  const credsChanged = () => !editing || ["env", "clientId", "clientSecret", "customerId", "customerSecret"].some(k => draft[k] !== editing[k]);
+
+  function field(id, label, key, secret, hint) {
+    const input = h("input", { id, type: secret && !showSecrets ? "password" : "text", autocomplete: "off", spellcheck: "false" });
+    input.value = draft[key];
+    input.addEventListener("input", () => { draft[key] = input.value; verify = null; verifyToken = null; });
+    return h("div", null, h("label", { class: "f", for: id }, label, input), hint ? h("div", { class: "note", text: hint }) : null);
+  }
+  function showToggle() {
+    const chk = h("input", { type: "checkbox", id: "wizShow" });
+    chk.checked = showSecrets;
+    chk.addEventListener("change", () => { showSecrets = chk.checked; draw(); });
+    return h("div", { class: "row" }, chk, h("label", { for: "wizShow", class: "note", text: "Show secrets" }));
+  }
+  function stepper() {
+    return h("ol", { class: "stepper", "aria-label": "Setup steps" }, STEPS.map((s, i) => {
+      const n = i + 1;
+      return h("li", { class: n === step ? "cur" : n < step ? "done" : "", "aria-current": n === step ? "step" : null },
+        h("span", { class: "n", text: n < step ? "✓" : String(n) }), h("span", { text: s }));
+    }));
+  }
+  function body() {
+    if (step === 1) {
+      const radio = (value, title, url, text) => {
+        const input = h("input", { type: "radio", name: "env", value, id: "env_" + value });
+        input.checked = draft.env === value;
+        input.addEventListener("change", () => { draft.env = value; verify = null; verifyToken = null; });
+        return h("label", { class: "choice", for: "env_" + value }, input,
+          h("span", null, h("strong", { text: title }), h("br"), h("code", { text: url }), h("br"), h("span", { class: "note", text: text })));
+      };
+      return h("div", null,
+        h("div", null, h("label", { class: "f", for: "wizName" }, "Configuration name",
+          (() => { const i = h("input", { id: "wizName", type: "text", autocomplete: "off", maxlength: "60" }); i.value = draft.name; i.addEventListener("input", () => { draft.name = i.value; }); return i; })()),
+          h("div", { class: "note", text: "Use a name that identifies this configuration, for example OTE or Live - Customer name." })),
+        h("h3", { text: "Environment" }),
+        radio("test", "Test (OTE)", ENVS.test.root, "For development and testing."),
+        radio("live", "Live", ENVS.live.root, "Production data. Use Live credentials."));
+    }
+    if (step === 2) {
+      return h("div", null,
+        h("p", { class: "note", text: "SFG20 gives these credentials to the Approved Provider." }),
+        h("div", { class: "grid2" }, field("wCid", "Client (Bridge) ID", "clientId", false), field("wCsec", "Client (Bridge) Secret", "clientSecret", true)),
+        showToggle());
+    }
+    if (step === 3) {
+      return h("div", null,
+        h("p", { class: "note", text: "SFG20 gives these credentials for the customer whose library you want to read." }),
+        h("div", { class: "grid2" }, field("wUid", "Customer ID", "customerId", false), field("wUsec", "Customer Secret", "customerSecret", true)),
+        showToggle());
+    }
+    const msg = h("div", { class: "msg", role: "status", "aria-live": "polite" });
+    if (verify) { msg.className = "msg " + (verify.ok ? "ok" : "bad"); msg.textContent = verify.text; }
+    const vbtn = h("button", { class: "btn", type: "button", text: "Request token to verify" });
+    vbtn.addEventListener("click", async () => {
+      vbtn.disabled = true; msg.className = "msg"; msg.textContent = "Requesting token...";
+      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), TOKEN_TIMEOUT_MS);
+      const r = await tokenCall(draft, null, ctrl.signal);
+      clearTimeout(to);
+      verifyToken = r.ok ? r.token : null;
+      verify = { ok: r.ok, text: tokenMessage(r, { name: draft.name || "this configuration", env: draft.env }) };
+      vbtn.disabled = false; draw();
+    });
+    return h("div", null,
+      table(["Setting", "Value"], [
+        ["Name", draft.name], ["Environment", ENVS[draft.env].label], ["URL", ENVS[draft.env].root],
+        ["Client ID", mask(draft.clientId, 8)], ["Client Secret", mask(draft.clientSecret)],
+        ["Customer ID", mask(draft.customerId, 8)], ["Customer Secret", mask(draft.customerSecret)]]),
+      h("div", { class: "row" }, vbtn, msg),
+      h("p", { class: "note", text: "Verification is optional. You can save the configuration now. You can check it later with Request token." }),
+      state.storageOk ? h("div", { class: "notice", text: "The browser saves the credentials and the token in local storage. The storage is not encrypted." }) : storageNotice());
+  }
+  function validate() {
+    const err = t => { errBox.textContent = t; return false; };
+    errBox.textContent = "";
+    if (step === 1) {
+      const name = draft.name.trim();
+      if (!name) return err("Enter a name.");
+      if (configs().some(c => c.id !== (editing && editing.id) && c.name.toLowerCase() === name.toLowerCase())) return err("A configuration with this name already exists.");
+      draft.name = name;
+    }
+    if (step === 2 && (!draft.clientId.trim() || !draft.clientSecret.trim())) return err("Enter the Client (Bridge) ID and secret.");
+    if (step === 3 && (!draft.customerId.trim() || !draft.customerSecret.trim())) return err("Enter the Customer ID and secret.");
+    return true;
+  }
+  function save() {
+    ["clientId", "clientSecret", "customerId", "customerSecret"].forEach(k => { draft[k] = draft[k].trim(); });
+    if (editing) {
+      const keep = credsChanged() ? null : editing.token;
+      Object.assign(editing, draft, { token: verifyToken || keep });
+      state.store.activeId = editing.id;
+    } else {
+      const c = Object.assign({ id: newId(), token: verifyToken || null }, draft);
+      configs().push(c); state.store.activeId = c.id;
+    }
+    state.last = {};
+    saveStore(); refreshChrome();
+    location.hash = editing ? "#configs" : "#schedules-v2";
+  }
+
+  const errBox = h("div", { class: "msg bad", role: "alert" });
+  function draw() {
+    const back = h("button", { class: "btn", type: "button", text: "Back", disabled: step === 1, onclick: () => { errBox.textContent = ""; step--; draw(); } });
+    const next = step < 4
+      ? h("button", { class: "btn primary", type: "button", text: "Next", onclick: () => { if (validate()) { step++; draw(); } } })
+      : h("button", { class: "btn primary", type: "button", text: editing ? "Save changes" : "Save and use", onclick: save });
+    const cancel = configs().length ? h("button", { class: "btn", type: "button", text: "Cancel", onclick: () => { location.hash = "#configs"; } }) : null;
+    setKids(root,
+      h("h2", { text: editing ? "Edit configuration" : first ? "Set up a configuration" : "Add configuration" }),
+      first ? h("div", null, h("p", { class: "lede", text: "This browser has no stored configuration." }), h("p", { class: "lede", text: "A configuration has a name, an environment and four credentials. You need the credentials to request a token." })) : null,
+      stepper(),
+      h("div", { class: "card" }, h("h3", { style: "margin-top:0", text: "Step " + step + " of 4: " + STEPS[step - 1] }), body(), errBox),
+      h("div", { class: "row" }, back, next, cancel));
+  }
+  draw();
+  return root;
+}
+
+/* ---- Cached responses page ---- */
+function endpointForUrl(url) {
+  let path; try { path = new URL(url).pathname; } catch (e) { return null; }
+  return ENDPOINTS.find(ep => new RegExp("^" + ep.path.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{[^}]+\}/g, "[^/]+") + "$", "i").test(path)) || null;
+}
+function pageCache() {
+  const wrap = h("div", { class: "page", style: "max-width:1100px" });
+  const msg = h("div", { class: "msg", role: "status", "aria-live": "polite" });
+  let selectedKey = null;
+
+  function viewer(e) {
+    const hit = cacheGet(e.cfgId, e.url);
+    if (!hit) return h("div", { class: "notice warn", text: "This cached response is no longer available." });
+    let parsed; try { parsed = JSON.parse(hit.text); } catch (err) { /* not JSON */ }
+    let shown = parsed !== undefined ? JSON.stringify(parsed, null, 2) : hit.text;
+    const truncated = shown.length > MAX_RENDER_CHARS;
+    if (truncated) shown = shown.slice(0, MAX_RENDER_CHARS);
+    const c = findConfig(e.cfgId), ep = endpointForUrl(e.url);
+    const items = Array.isArray(parsed) ? fmtNum(parsed.length) : "-";
+    return h("div", { class: "card" },
+      h("h3", { style: "margin-top:0", text: "Cached response" }),
+      table(["Item", "Value"], [
+        ["Configuration", c ? c.name : "(deleted configuration)"],
+        ["Request", h("code", { text: e.url })],
+        ["Status", "HTTP " + hit.status + (hit.statusText ? " " + hit.statusText : "")],
+        ["Saved", fmtDate(hit.savedAt)],
+        ["Size", fmtNum(hit.text.length) + " characters"],
+        ["Items", items]]),
+      h("div", { class: "row" },
+        h("button", { class: "btn small", type: "button", text: "Copy", onclick: () => navigator.clipboard && navigator.clipboard.writeText(hit.text) }),
+        h("button", { class: "btn small", type: "button", text: "Download", onclick: () => downloadText(hit.text, (ep ? ep.id : "response") + ".json") }),
+        ep ? h("a", { class: "btn small", href: "#" + ep.id, text: "Open endpoint page" }) : null,
+        h("button", { class: "btn small", type: "button", text: "Close", onclick: () => { selectedKey = null; draw(); } })),
+      truncated ? h("div", { class: "notice warn", text: "The response has more than " + fmtNum(MAX_RENDER_CHARS) + " characters. The page shows only the first " + fmtNum(MAX_RENDER_CHARS) + " characters. Use Download to get the complete response." }) : null,
+      h("pre", { style: "max-height:480px", text: shown || "(empty body)" }));
+  }
+
+  function draw() {
+    const entries = cacheEntries();
+    if (selectedKey && !entries.some(e => e.key === selectedKey)) selectedKey = null;
+    const total = entries.reduce((n, e) => n + e.size, 0);
+    const current = entries.find(e => e.key === selectedKey);
+    setKids(wrap,
+      h("h2", { text: "Cached responses" }),
+      h("p", { class: "lede", text: "These responses are in local storage. An endpoint page stores a response when you select the cache option." }),
+      h("p", { class: "lede", text: "Select View to read a stored response on this page." }),
+      h("p", { class: "lede", text: "To get a new response, open the endpoint page and select Fetch from server." }),
+      storageNotice(),
+      h("div", { class: "row", style: "margin:8px 0" },
+        entries.length ? h("button", { class: "btn", type: "button", text: "Clear all cached responses", onclick: () => { if (window.confirm("Delete all cached responses?")) { cacheClear(); selectedKey = null; msg.textContent = "Cache cleared."; draw(); } } }) : null,
+        msg),
+      entries.length
+        ? table(["Configuration", "Request", "Saved", "Size", "Actions"], entries.map(e => {
+            const c = findConfig(e.cfgId);
+            return [c ? c.name : "(deleted configuration)", h("code", { text: e.url.replace(/^https?:\/\//, "") }), e.savedAt ? fmtDate(e.savedAt) : "unknown",
+              fmtNum(e.size) + " characters",
+              h("div", { class: "row", style: "margin:0" },
+                h("button", { class: "btn small" + (e.key === selectedKey ? " primary" : ""), type: "button", text: e.key === selectedKey ? "Viewing" : "View", onclick: () => { selectedKey = e.key; msg.textContent = ""; draw(); } }),
+                h("button", { class: "btn small", type: "button", text: "Delete", onclick: () => { safeStore(localStorage, "del", e.key); draw(); } }))];
+          }))
+        : h("p", { class: "note", text: "No responses are cached." }),
+      current ? viewer(current) : null,
+      h("p", { class: "note", text: entries.length
+        ? fmtNum(entries.length) + " cached response" + (entries.length === 1 ? "" : "s") + ", " + fmtNum(total) + " characters in total. A browser allows about 5 million characters of local storage for each site. The stored configurations also use this space."
+        : "To store a response, select Cache this response in local storage on an endpoint page." }));
+    if (current) { const pre = wrap.querySelector("pre"); if (pre) pre.scrollTop = 0; }
+  }
+  draw();
+  return wrap;
+}
+
+/* ---- Swagger index page ---- */
+function pageSwagger() {
+  const wrap = h("div", { class: "page", style: "max-width:1180px" });
+  const root = rootUrl();
+  const norm = p => p.toLowerCase().replace(/\{[^}]+\}/g, "{}");
+  const byPath = {}; ENDPOINTS.forEach(e => { byPath[norm(e.path)] = e; });
+  // /api2/v2/X is the same action as /api2/X/v2
+  const aliasTarget = p => /^\/api2\/v2\//i.test(p) ? "/api2/" + p.slice("/api2/v2/".length) + "/v2" : null;
+  const firstSentence = t => ((t || "").match(/^.*?[.!?](\s|$)/) || [t || ""])[0].trim();
+
+  function head(extra) {
+    return [
+      h("h2", { text: "API index (Swagger)" }),
+      h("p", { class: "lede", text: "This page shows the endpoints in the Swagger document of the " + ENVS[active().env].label + " API." }),
+      h("p", { class: "lede", text: "The page reads the document from " + root + "/swagger/docs/api2. It adds descriptions from the documented behaviour of the API." }),
+      h("div", { class: "row", style: "margin:8px 0" },
+        h("a", { class: "btn", href: root + "/swagger/ui/index", target: "_blank", rel: "noopener noreferrer", text: "Open the Swagger UI of the API" }),
+        extra || null)
+    ];
+  }
+  function behaviour() {
+    return acc("How the API behaves", "all endpoints", h("ul", null,
+      h("li", { text: "Every endpoint needs the HTTP header Authorization: Bearer {access token}. Get the token with the Token request." }),
+      h("li", { text: "Status 401 means that the token is missing or has expired. Status 403 means that the token was not issued for API access." }),
+      h("li", { text: "Responses are always JSON. The Swagger document lists XML as a format. However, the API does not return XML, even if the HTTP header Accept asks for it." }),
+      h("li", { text: "Endpoint paths are not case sensitive. /api2/ServiceModels and /api2/servicemodels are the same endpoint." }),
+      h("li", { text: "A path that starts with /api2/v2/ is another name for the path that ends with /v2. For example, /api2/v2/schedules and /api2/schedules/v2 do the same thing." }),
+      h("li", { text: "A request that returns many schedules takes more time, because the API reads each schedule separately. To get only the IDs, use List schedule IDs. It is much faster." }),
+      h("li", { text: "The API records every successful request for the usage report of the account. The record has the endpoint, the number of records and the size of the response in MB." }),
+      h("li", { text: "A server error returns status 500 with an empty body. The V1 schedule list returns a number instead. The number is an error code. The API gives no more detail. Write down the time and the URL. Give them to SFG20 support." }),
+      h("li", { text: "A list endpoint that finds no items returns status 200 with []. Status 404 appears only when you ask for one item or one code." })
+    ), true);
+  }
+  function details(ep) {
+    const body = h("div", null,
+      ep.purpose.map(t => h("p", { text: t })),
+      ep.params.length ? table(["Parameter", "Type", "Description"], ep.params.map(p => [p.name, p.type, p.desc])) : null,
+      table(["Status", "Meaning"], statusRows(ep)),
+      ep.notes && ep.notes.length ? h("ul", null, ep.notes.map(n => h("li", { text: n }))) : null);
+    return h("details", { class: "mini" }, h("summary", { text: "Details" }), body);
+  }
+  function draw(doc) {
+    const rows = {};
+    for (const [path, ops] of Object.entries(doc.paths || {})) {
+      for (const [method, op] of Object.entries(ops)) {
+        const tag = ((op.tags && op.tags[0]) || "Other").replace(/Api$/, "");
+        const params = (op.parameters || []).map(p => p.name + " (" + (p.format || p.type || "") + ")").join(", ") || "none";
+        let ep = byPath[norm(path)], aliasOf = null;
+        if (!ep && aliasTarget(path)) { aliasOf = aliasTarget(path); ep = byPath[norm(aliasOf)]; }
+        let summary, explorer;
+        if (aliasOf) {
+          summary = h("span", { class: "note" }, "Another name for ", h("code", { text: aliasOf }), ".");
+          explorer = ep ? h("a", { href: "#" + ep.id, text: "Open" }) : "-";
+        } else if (ep) {
+          summary = ep.purpose[0];
+          explorer = h("div", null, h("a", { href: "#" + ep.id, text: "Open" }),
+            ep.status === "deprecated" ? h("div", { style: "margin-top:4px" }, h("span", { class: "tag-dep", style: "margin-left:0", text: "Deprecated" })) : null);
+        } else {
+          summary = h("span", { class: "note", text: "No description available." });
+          explorer = "-";
+        }
+        (rows[tag] = rows[tag] || []).push([
+          h("span", { class: "verb", text: method.toUpperCase() }),
+          h("div", null, h("code", { text: path }), !aliasOf && ep ? details(ep) : null),
+          summary, params, explorer]);
+      }
+    }
+    const count = Object.values(rows).reduce((n, r) => n + r.length, 0);
+    setKids(wrap,
+      ...head(h("button", { class: "btn", type: "button", text: "Download JSON", onclick: () => downloadText(JSON.stringify(doc, null, 2), "swagger-" + active().env + ".json") })),
+      h("div", { class: "notice", text: "The Swagger document gives the endpoints and the path parameters. The descriptions, status codes and behaviour come from the source code of the API. SFG20 checked the schedule ID, NRM code and service model summary endpoints against the live API. " + count + " endpoints in total." }),
+      behaviour(),
+      Object.entries(rows).map(([tag, r]) => { const t = table(["Method", "Endpoint", "Summary", "Parameters", "Endpoint page"], r); t.classList.add("sw"); return acc(tag, r.length + " endpoint" + (r.length === 1 ? "" : "s"), t, true); }));
+  }
+  async function load(force) {
+    if (!force && state.swagger[root]) return draw(state.swagger[root]);
+    setKids(wrap, ...head(), h("p", { class: "note", text: "Reading " + root + "/swagger/docs/api2" }));
+    try {
+      const res = await fetch(root + "/swagger/docs/api2", { headers: { "Accept": "application/json" } });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const doc = await res.json();
+      state.swagger[root] = doc;
+      draw(doc);
+    } catch (e) {
+      setKids(wrap, ...head(h("button", { class: "btn", type: "button", text: "Retry", onclick: () => load(true) })),
+        h("div", { class: "notice warn", text: "The page could not read the Swagger document from this environment (" + (e.message || "network error") + "). You can try the Swagger UI link above." }));
+    }
+  }
+  load(false);
+  return wrap;
+}
+
+/* ---- Request column for the token and endpoints ---- */
+function noConfigNotice() {
+  return h("div", { class: "notice warn" }, "No configuration selected. ", h("a", { href: "#setup", text: "Create one" }), ".");
+}
+
+function authAccordion(onToken) {
+  const cfg = active();
+  const msg = h("span", { class: "msg", role: "status", "aria-live": "polite" });
+  const btn = h("button", { class: "btn primary", type: "button", text: "Request token" });
+  const a = acc("Authentication", tokenStatusText(cfg), h("div", null,
+    h("p", null, "Configuration: ", h("strong", { text: cfg.name }), " ", envPill(cfg)),
+    h("div", { class: "row" }, btn, msg),
+    h("p", { class: "note" }, h("a", { href: "#setup/" + cfg.id, text: "Edit configuration" }), " or ", h("a", { href: "#configs", text: "manage configurations" }), ".")),
+    !tokenOk(cfg));
+  btn.addEventListener("click", async () => {
+    btn.disabled = true; msg.className = "msg"; msg.textContent = "Requesting token";
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), TOKEN_TIMEOUT_MS);
+    const r = await tokenCall(cfg, null, ctrl.signal);
+    clearTimeout(to); applyToken(cfg, r);
+    msg.className = "msg " + (r.ok ? "ok" : "bad"); msg.textContent = tokenMessage(r, cfg);
+    a.setSummary(tokenStatusText(cfg));
+    if (r.ok) a.open = false;
+    btn.disabled = false;
+    if (onToken) onToken();
+  });
+  return a;
+}
+
+function docAccordions(ep) {
+  const out = [];
+  if (ep.notes && ep.notes.length) out.push(acc("Notes", ep.notes.length + (ep.notes.length === 1 ? " note" : " notes"), h("ul", null, ep.notes.map(n => h("li", { text: n })))));
+  if (ep.id === "token") {
+    out.push(acc("Request body", "application/x-www-form-urlencoded", table(["Field", "Type", "Description"], ep.bodyFields)));
+    out.push(acc("Example response", "", h("pre", { text: JSON.stringify(ep.example, null, 2) })));
+    out.push(acc("Errors", "", table(["Result", "Meaning"], ep.errors)));
+    return out;
+  }
+  out.push(acc("Parameters and HTTP headers", ep.params.length + " parameter" + (ep.params.length === 1 ? "" : "s"), h("div", null,
+    ep.params.length ? table(["Parameter", "Where", "Type", "Description"], ep.params.map(p => [p.name, p.where === "path" ? "URL path" : p.where, p.type, p.desc])) : h("p", { text: "This endpoint has no parameters." }),
+    table(["HTTP header", "Value"], [["Accept", "application/json"], ["Authorization", "Bearer {access token}"]]))));
+  if (ep.fields.length) {
+    out.push(acc("Response fields", ep.fields.join(", "), h("div", null, ep.fields.map(n => h("div", null, h("h3", { text: n }), table(["Property", "Type", "Description"], FIELDS[n]))))));
+  }
+  out.push(acc("Example response", "", h("pre", { text: JSON.stringify(ep.example, null, 2) })));
+  out.push(acc("Status codes", "", table(["Status", "Meaning"], statusRows(ep))));
+  return out;
+}
+
+function headingBlock(ep) {
+  const method = ep.method || "GET";
+  return h("div", { class: "hd" },
+    h("h2", null, ep.title, ep.status === "deprecated" ? h("span", { class: "tag-dep", text: "Deprecated" }) : null),
+    ep.purpose.map(t => h("p", { class: "lede", text: t })),
+    h("div", { class: "urlline" }, h("span", { class: "verb" + (method === "POST" ? " post" : ""), text: method }), h("code", { text: "{Root endpoint}" + ep.path })),
+    ep.status === "deprecated" ? h("div", { class: "notice warn", text: "Deprecated. This endpoint stays for existing integrations. For new work, use the V2 endpoint." }) : null,
+    null
+  );
+}
+
+function viewToken(panel) {
+  const ep = TOKEN_DOC;
+  const cfg = active();
+  const msg = h("span", { class: "msg", role: "status", "aria-live": "polite" });
+  const send = h("button", { class: "btn primary", type: "button", text: "Send" });
+  const cancel = h("button", { class: "btn", type: "button", text: "Cancel", disabled: true });
+  const url = rootOf(cfg) + "/token";
+
+  const reqAcc = acc("Request", "POST " + ep.path, h("div", null,
+    table(["Setting", "Value"], [
+      ["Configuration", cfg.name], ["Environment", ENVS[cfg.env].label],
+      ["Client ID", mask(cfg.clientId, 8)], ["Client Secret", mask(cfg.clientSecret)],
+      ["Customer ID", mask(cfg.customerId, 8)], ["Customer Secret", mask(cfg.customerSecret)]]),
+    h("div", { class: "urlline" }, h("span", { class: "note", text: "URL" }), h("code", { text: url })),
+    h("div", { class: "row" }, send, cancel, msg),
+    h("p", { class: "note" }, h("a", { href: "#setup/" + cfg.id, text: "Edit configuration" }), ".")), true);
+
+  send.addEventListener("click", async () => {
+    send.disabled = true; cancel.disabled = false; msg.textContent = "";
+    const ctrl = new AbortController(); state.abort = ctrl;
+    const to = setTimeout(() => ctrl.abort(), TOKEN_TIMEOUT_MS);
+    panel.requesting(url);
+    const r = await tokenCall(cfg, phase => { if (phase === "receive") panel.receiving(); }, ctrl.signal);
+    clearTimeout(to); state.abort = null;
+    send.disabled = false; cancel.disabled = true;
+    if (r.missing) { panel.fail("The configuration does not have all four credentials."); msg.className = "msg bad"; msg.textContent = tokenMessage(r, cfg); return; }
+    if (r.aborted && ctrl.userCancelled) { panel.cancelled(); return; }
+    if (r.network || r.aborted) { panel.fail(tokenMessage(r, cfg)); msg.className = "msg bad"; msg.textContent = tokenMessage(r, cfg); return; }
+    applyToken(cfg, r);
+    let parsed; try { parsed = JSON.parse(r.text); } catch (e) { /* leave undefined */ }
+    const result = { status: r.status, statusText: r.statusText, text: r.text, parsed, ms: r.ms };
+    state.last.token = { r: result, url };
+    panel.done(result, url);
+    msg.className = "msg " + (r.ok ? "ok" : "bad"); msg.textContent = r.ok ? tokenStatusText(cfg) + "." : tokenMessage(r, cfg);
+  });
+  cancel.addEventListener("click", () => { if (state.abort) { state.abort.userCancelled = true; state.abort.abort(); } });
+  return [headingBlock(ep), reqAcc, ...docAccordions(ep)];
+}
+
+function curlFor(url, showToken) {
+  const a = active();
+  const tok = showToken && a && a.token ? a.token.access : "{access token}";
+  return "curl -X GET '" + url + "' \\\n  -H 'Accept: application/json' \\\n  -H 'Authorization: Bearer " + tok + "'";
+}
+function buildUrl(ep, values) {
+  let p = ep.path;
+  for (const prm of ep.params) p = p.replace("{" + prm.name + "}", encodeURIComponent((values[prm.name] || "").trim()));
+  return rootUrl() + p;
+}
+
+function viewEndpoint(ep, panel) {
+  const cfg = active();
+  const cacheChk = h("input", { type: "checkbox", id: "cacheChk" });
+  cacheChk.checked = cacheOptGet(ep.id);
+  const cacheInfo = h("div", { class: "note", role: "status", "aria-live": "polite" });
+  const viewCacheBtn = h("button", { class: "btn primary", type: "button", text: "View cache", style: "display:none" });
+  const clearCacheBtn = h("button", { class: "btn small", type: "button", text: "Clear cached copy", style: "display:none" });
+  const values = {};
+  ep.params.forEach(p => { values[p.name] = p.example || ""; });
+  const urlCode = h("code", { text: "" });
+  const curlPre = h("pre", { text: "" });
+  const showTok = h("input", { type: "checkbox", id: "showTok" });
+  const msg = h("span", { class: "msg", role: "status", "aria-live": "polite" });
+  const send = h("button", { class: "btn primary", type: "button", text: "Send" });
+  const cancel = h("button", { class: "btn", type: "button", text: "Cancel", disabled: true });
+
+  function refreshPreview() {
+    urlCode.textContent = buildUrl(ep, values);
+    curlPre.textContent = curlFor(urlCode.textContent, showTok.checked);
+    updateCacheInfo();
+  }
+  function updateCacheInfo() {
+    const meta = cacheMeta(cfg.id, buildUrl(ep, values));
+    cacheInfo.textContent = meta
+      ? "Cached copy saved " + fmtDate(meta.savedAt) + " (" + fmtNum(meta.size) + " characters)." + (cacheChk.checked ? "" : " Caching is off, so a new response is not stored.")
+      : (cacheChk.checked ? "No cached copy yet. The next successful response is stored." : "");
+    send.textContent = meta ? "Fetch from server" : "Send";
+    send.className = meta ? "btn" : "btn primary";
+    viewCacheBtn.style.display = meta ? "" : "none";
+    clearCacheBtn.style.display = meta ? "" : "none";
+  }
+  showTok.addEventListener("change", refreshPreview);
+
+  const paramInputs = ep.params.map(p => {
+    const input = h("input", { id: "p_" + p.name, type: "text", autocomplete: "off", spellcheck: "false" });
+    input.value = values[p.name];
+    input.addEventListener("input", () => { values[p.name] = input.value; refreshPreview(); });
+    return h("label", { class: "f", for: "p_" + p.name }, p.name + " (" + p.type + ")", input);
+  });
+
+  const requestSummary = () => tokenValid() ? "Token ready" : "No valid token";
+  const auth = authAccordion(() => { reqAcc.setSummary(requestSummary()); });
+  const reqAcc = acc("Request", requestSummary(), h("div", null,
+    paramInputs.length ? h("div", { class: "grid2" }, paramInputs) : h("p", { class: "note", text: "No parameters." }),
+    h("div", { class: "urlline" }, h("span", { class: "note", text: "URL" }), urlCode),
+    h("div", { class: "row" }, viewCacheBtn, send, cancel, msg),
+    h("div", { class: "row" }, cacheChk, h("label", { for: "cacheChk", class: "note", text: "Cache this response in local storage" }), clearCacheBtn),
+    cacheInfo), true);
+  const curlAcc = acc("curl command", "", h("div", null, curlPre,
+    h("div", { class: "row" }, showTok, h("label", { for: "showTok", class: "note", text: "Include the current token in the command. Do not select this option if you will share the command." }))));
+
+  async function run() {
+    const missing = ep.params.filter(p => p.required && !(values[p.name] || "").trim());
+    const fail = t => { msg.className = "msg bad"; msg.textContent = t; };
+    if (missing.length) return fail("Enter " + missing.map(m => m.name).join(", ") + ".");
+    const url = buildUrl(ep, values);
+    if (!cfg.token) { auth.open = true; return fail("There is no token. Request a token in the Authentication section."); }
+    if (!tokenOk(cfg)) { auth.open = true; return fail("The token has expired. Request a new token in the Authentication section."); }
+    msg.className = "msg"; msg.textContent = "";
+    send.disabled = viewCacheBtn.disabled = true; cancel.disabled = false;
+    const ctrl = new AbortController(); state.abort = ctrl;
+    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+    const t0 = performance.now();
+    panel.requesting(url);
+    try {
+      const res = await fetch(url, { method: "GET", headers: { "Accept": "application/json", "Authorization": "Bearer " + cfg.token.access }, signal: ctrl.signal });
+      panel.receiving(res.status);
+      const text = await res.text();
+      let parsed; try { parsed = JSON.parse(text); } catch (e) { /* not JSON */ }
+      const result = { status: res.status, statusText: res.statusText, text, parsed, ms: performance.now() - t0 };
+      state.last[ep.id] = { r: result, url };
+      panel.done(result, url);
+      if (cacheChk.checked && result.status >= 200 && result.status < 300) {
+        const saved = cachePut(cfg.id, url, result);
+        msg.className = "msg " + (saved.ok ? "ok" : "bad");
+        msg.textContent = saved.ok ? "Response cached." : "The response was not cached. It is too big for local storage.";
+        updateCacheInfo();
+      }
+    } catch (e) {
+      if (e.name === "AbortError" && ctrl.userCancelled) panel.cancelled();
+      else if (e.name === "AbortError") panel.fail("There was no response after two minutes. Send the request again. If this continues, contact SFG20 support.");
+      else panel.fail("The request failed. The cause can be a network error or a blocked request.");
+    } finally {
+      clearTimeout(timer); send.disabled = viewCacheBtn.disabled = false; cancel.disabled = true; state.abort = null;
+    }
+  }
+  function viewCache() {
+    const url = buildUrl(ep, values);
+    const hit = cacheGet(cfg.id, url);
+    if (!hit) { msg.className = "msg bad"; msg.textContent = "There is no cached copy for this request."; updateCacheInfo(); return; }
+    let parsed; try { parsed = JSON.parse(hit.text); } catch (e) { /* not JSON */ }
+    msg.className = "msg"; msg.textContent = "";
+    panel.done({ status: hit.status, statusText: hit.statusText, text: hit.text, parsed, ms: 0 }, url, { cachedAt: hit.savedAt });
+  }
+  send.addEventListener("click", () => run());
+  viewCacheBtn.addEventListener("click", viewCache);
+  clearCacheBtn.addEventListener("click", () => { cacheDelete(cfg.id, buildUrl(ep, values)); updateCacheInfo(); msg.className = "msg"; msg.textContent = "Cached copy cleared."; });
+  cacheChk.addEventListener("change", () => { cacheOptSet(ep.id, cacheChk.checked); updateCacheInfo(); });
+  cancel.addEventListener("click", () => { if (state.abort) { state.abort.userCancelled = true; state.abort.abort(); } });
+  refreshPreview();
+  return [headingBlock(ep), auth, reqAcc, ...docAccordions(ep), curlAcc];
+}
+
+/* ------------------------------------------------------------------ *
+ * Router and chrome
+ * ------------------------------------------------------------------ */
+function refreshChrome() {
+  const sel = document.getElementById("cfgSelect");
+  const a = active();
+  sel.replaceChildren(...configs().map(c => { const o = h("option", { value: c.id, text: c.name }); if (a && c.id === a.id) o.selected = true; return o; }));
+  document.getElementById("cfgGroup").style.display = configs().length ? "" : "none";
+  const badge = document.getElementById("envBadge");
+  badge.textContent = a ? ENVS[a.env].label : "";
+  badge.className = "pill" + (a && a.env === "live" ? " bad" : "");
+  document.getElementById("rootUrl").textContent = a ? rootOf(a) : "";
+  document.getElementById("liveBar").classList.toggle("show", !!(a && a.env === "live"));
+  renderTokenPill();
+}
+
+function setActive(id) {
+  if (!findConfig(id) || id === state.store.activeId) return;
+  state.store.activeId = id; state.last = {};
+  saveStore(); refreshChrome();
+}
+
+function render() {
+  const { id, arg } = parseHash();
+  const app = document.getElementById("app");
+  const colReq = document.getElementById("colReq");
+  const colRes = document.getElementById("colRes");
+  if (state.abort) { state.abort.userCancelled = true; state.abort.abort(); }
+
+  // No configuration yet: only the setup wizard is available.
+  const setup = id === "setup" || !configs().length;
+  app.classList.toggle("setup", !configs().length);
+  if (setup) {
+    app.classList.add("single");
+    colReq.replaceChildren(pageWizard(id === "setup" ? arg : ""));
+    colRes.replaceChildren();
+    document.title = "Setup - SFG20 API Explorer";
+    markCurrent(); return;
+  }
+  const view = VIEWS.find(v => v.id === id) || VIEWS[0];
+  if (view.page) {
+    app.classList.add("single");
+    const builders = { start: pageStart, configs: pageConfigs, cache: pageCache, swagger: pageSwagger, domain: pageDomain, lookups: pageLookups, glossary: pageGlossary, trouble: pageTrouble };
+    colReq.replaceChildren(builders[view.id]());
+    colRes.replaceChildren();
+  } else {
+    app.classList.remove("single");
+    const panel = buildResponseColumn(view.id);
+    colRes.replaceChildren(panel.node);
+    colReq.replaceChildren(...(view.id === "token" ? viewToken(panel) : viewEndpoint(view.ep, panel)));
+    panel.restore(state.last[view.id]);
+  }
+  colReq.scrollTop = 0;
+  document.title = view.title + " - SFG20 API Explorer";
+  markCurrent();
+  document.getElementById("side").classList.remove("open");
+  document.getElementById("menuBtn").setAttribute("aria-expanded", "false");
+}
+
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  const b = document.getElementById("themeBtn");
+  b.textContent = t === "dark" ? "Light mode" : "Dark mode";
+  b.setAttribute("aria-pressed", String(t === "dark"));
+}
+
+document.getElementById("cfgSelect").addEventListener("change", e => { setActive(e.target.value); render(); });
+document.getElementById("themeBtn").addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next); safeStore(localStorage, "set", "sfg20.theme", next);
+});
+document.getElementById("menuBtn").addEventListener("click", () => {
+  const s = document.getElementById("side"); const open = s.classList.toggle("open");
+  document.getElementById("menuBtn").setAttribute("aria-expanded", String(open));
+});
+document.getElementById("navFilter").addEventListener("input", e => renderNav(e.target.value));
+window.addEventListener("hashchange", render);
+
+state.store = loadStore();
+applyTheme(safeStore(localStorage, "get", "sfg20.theme") === "dark" ? "dark" : "light");
+renderNav("");
+refreshChrome();
+if (!configs().length && !location.hash) location.hash = "#setup";
+render();
+</script>
+</body>
+</html>
