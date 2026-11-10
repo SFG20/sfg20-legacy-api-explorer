@@ -66,3 +66,7 @@ Getting started, API index (Swagger), Domain rules, Lookup tables, Glossary and 
 ## Support
 
 Contact SFG20 support. Give the time, the URL and the status of the request.
+
+## Licence
+
+See [LICENSE](LICENSE).
