@@ -108,6 +108,11 @@ nav.side a[aria-current="page"] { background: var(--brand-soft); color: var(--br
 
 /* Heading block */
 .hd { margin-bottom: 8px; }
+.reqsplit { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 16px; align-items: start; }
+.reqsplit > div { min-width: 0; }
+.curlbox { order: 2; border-left: 1px solid var(--line); padding-left: 14px; }
+.curlbox pre { font: 12px var(--mono); word-break: break-all; margin: 6px 0; }
+.curlhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .urlline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 0; }
 .urlline code { word-break: break-all; }
 .lede { color: var(--muted); margin: 10px 0; line-height: 1.6; }
@@ -530,7 +535,7 @@ const GLOSSARY = [
   ["Bearer token", "A long text that proves that you are signed in. Send it in the HTTP header Authorization of every request. A token stops working after some time."],
   ["Cache", "A stored copy of a response. This page keeps cached responses in local storage."],
   ["Client (Bridge) credentials", "A Client (Bridge) ID and a secret. SFG20 gives them to an Approved Provider."],
-  ["curl", "A command-line program that sends HTTP requests. Each endpoint page shows a curl command for the request."],
+  ["curl", "A command-line program that sends HTTP requests. Each endpoint page shows an optional curl command for the request."],
   ["Customer credentials", "A Customer ID and a secret. SFG20 gives them for one customer. They give access to the library of that customer."],
   ["Deprecated", "A deprecated endpoint still works. Do not use it for new work."],
   ["Endpoint", "A web address (URL) that returns one kind of data."],
@@ -736,6 +741,19 @@ function acc(title, summary, body, open) {
   if (open) d.open = true;
   d.setSummary = t => { sum.textContent = t; };
   return d;
+}
+function copyWithFeedback(btn, text) {
+  const old = btn.textContent;
+  const done = ok => { btn.textContent = ok ? "Copied" : "Not copied"; setTimeout(() => { btn.textContent = old; }, 1500); };
+  try { navigator.clipboard.writeText(text).then(() => done(true), () => done(false)); } catch (e) { done(false); }
+}
+function curlBox(pre, extra, copyText) {
+  const copy = h("button", { class: "btn small", type: "button", text: "Copy" });
+  copy.addEventListener("click", () => copyWithFeedback(copy, copyText()));
+  return h("div", { class: "curlbox" },
+    h("div", { class: "curlhead" }, h("strong", { text: "curl command" }), copy),
+    h("p", { class: "note", text: "Optional. Use this command to send the same request from other software." }),
+    pre, extra);
 }
 function downloadText(text, name) {
   const blob = new Blob([text], { type: "application/json" });
@@ -951,7 +969,7 @@ function pageStart() {
       h("li", null, "Open ", h("a", { href: "#token", text: "Token" }), " and select Send. Or select Request token in the Authentication section of any endpoint. The top bar of the page shows how long the token is valid."),
       h("li", { text: "Select an endpoint. Enter the parameters, if the endpoint has any. Select Send." }),
       h("li", { text: "Read the response in the Response column. It shows the status and the data." }),
-      h("li", { text: "Use the curl command on the endpoint page to send the same request from other software." })
+      h("li", { text: "Use the optional curl command next to the request form to send the same request from other software." })
     ), true),
     acc("Credentials", "", h("div", null,
       h("p", { text: "You need two sets of credentials:" }),
@@ -1435,14 +1453,16 @@ function viewToken(panel) {
   const cancel = h("button", { class: "btn", type: "button", text: "Cancel", disabled: true });
   const url = rootOf(cfg) + "/token";
 
-  const reqAcc = acc("Request", "POST " + ep.path, h("div", null,
+  const tokenCurl = "curl -X POST '" + url + "' \\\n  -H 'Content-Type: application/x-www-form-urlencoded' \\\n  --data-urlencode 'grant_type=password' \\\n  --data-urlencode 'client_id={client_id}' \\\n  --data-urlencode 'client_secret={client_secret}' \\\n  --data-urlencode 'customer_id={customer_id}' \\\n  --data-urlencode 'customer_secret={customer_secret}'";
+  const tokenCurlPanel = curlBox(h("pre", { text: tokenCurl }), h("p", { class: "note", text: "The command has placeholders in braces. Replace them with your credentials. This page does not put credentials in the command." }), () => tokenCurl);
+  const reqAcc = acc("Request", "POST " + ep.path, h("div", { class: "reqsplit" }, tokenCurlPanel, h("div", null,
     table(["Setting", "Value"], [
       ["Configuration", cfg.name], ["Environment", ENVS[cfg.env].label],
       ["Client ID", mask(cfg.clientId, 8)], ["Client Secret", mask(cfg.clientSecret)],
       ["Customer ID", mask(cfg.customerId, 8)], ["Customer Secret", mask(cfg.customerSecret)]]),
     h("div", { class: "urlline" }, h("span", { class: "note", text: "URL" }), h("code", { text: url })),
     h("div", { class: "row" }, send, cancel, msg),
-    h("p", { class: "note" }, h("a", { href: "#setup/" + cfg.id, text: "Edit configuration" }), ".")), true);
+    h("p", { class: "note" }, h("a", { href: "#setup/" + cfg.id, text: "Edit configuration" }), "."))), true);
 
   send.addEventListener("click", async () => {
     send.disabled = true; cancel.disabled = false; msg.textContent = "";
@@ -1519,14 +1539,15 @@ function viewEndpoint(ep, panel) {
 
   const requestSummary = () => tokenValid() ? "Token ready" : "No valid token";
   const auth = authAccordion(() => { reqAcc.setSummary(requestSummary()); });
-  const reqAcc = acc("Request", requestSummary(), h("div", null,
+  const curlPanel = curlBox(curlPre,
+    h("div", { class: "row" }, showTok, h("label", { for: "showTok", class: "note", text: "Include the current token in the command. Do not select this option if you will share the command." })),
+    () => curlPre.textContent);
+  const reqAcc = acc("Request", requestSummary(), h("div", { class: "reqsplit" }, curlPanel, h("div", null,
     paramInputs.length ? h("div", { class: "grid2" }, paramInputs) : h("p", { class: "note", text: "No parameters." }),
     h("div", { class: "urlline" }, h("span", { class: "note", text: "URL" }), urlCode),
     h("div", { class: "row" }, viewCacheBtn, send, cancel, msg),
     h("div", { class: "row" }, cacheChk, h("label", { for: "cacheChk", class: "note", text: "Cache this response in local storage" }), clearCacheBtn),
-    cacheInfo), true);
-  const curlAcc = acc("curl command", "", h("div", null, curlPre,
-    h("div", { class: "row" }, showTok, h("label", { for: "showTok", class: "note", text: "Include the current token in the command. Do not select this option if you will share the command." }))));
+    cacheInfo)), true);
 
   async function run() {
     const missing = ep.params.filter(p => p.required && !(values[p.name] || "").trim());
@@ -1577,7 +1598,7 @@ function viewEndpoint(ep, panel) {
   cacheChk.addEventListener("change", () => { cacheOptSet(ep.id, cacheChk.checked); updateCacheInfo(); });
   cancel.addEventListener("click", () => { if (state.abort) { state.abort.userCancelled = true; state.abort.abort(); } });
   refreshPreview();
-  return [headingBlock(ep), auth, reqAcc, ...docAccordions(ep), curlAcc];
+  return [headingBlock(ep), auth, reqAcc, ...docAccordions(ep)];
 }
 
 /* ------------------------------------------------------------------ *
